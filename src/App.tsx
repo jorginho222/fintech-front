@@ -3,6 +3,7 @@ import { Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom'
 import { CompanyLoginForm } from '@/company/components/company-login-form'
 import { CompanyRegistrationForm } from '@/company/components/company-registration-form'
 import { CreditRequestApplicationsView } from '@/credit-request-applications/components/credit-request-applications-view'
+import { CreditRequestApplicationCreateView } from '@/credit-request-applications/components/credit-request-application-create-view'
 import { DashboardView } from '@/dashboard/components/dashboard-view'
 import { ProtectedRoute } from '@/protected-route'
 
@@ -76,6 +77,10 @@ function App() {
         <Route
           path="/credit_request_applications"
           element={<CreditRequestApplicationsView />}
+        />
+        <Route
+          path="/credit_request_applications/create"
+          element={<CreditRequestApplicationCreateView />}
         />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

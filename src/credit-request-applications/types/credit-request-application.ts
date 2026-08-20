@@ -18,3 +18,8 @@ export interface CreditRequestApplication {
   creditRequestId: string | null
   company: CreditRequestApplicationCompany
 }
+
+export interface CreditRequestApplicationCreate {
+  amount: number
+  installmentQuantity: number
+}

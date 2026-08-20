@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 
 import type { CreditRequestApplicationStatus } from '@/credit-request-applications/types/credit-request-application'
 import { useCreditRequestApplicationStore } from '@/store/credit-request-application-store'
@@ -32,10 +33,16 @@ export function CreditRequestApplicationsView() {
 
   return (
     <div className="w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-xl shadow-black/40">
-      <div className="border-b border-slate-800 p-6">
+      <div className="flex items-center justify-between gap-4 border-b border-slate-800 p-6">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
           Solicitud de creditos
         </h1>
+        <Link
+          to="/credit_request_applications/create"
+          className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 active:scale-[0.98]"
+        >
+          Nueva solicitud
+        </Link>
       </div>
 
       {isLoading && (
