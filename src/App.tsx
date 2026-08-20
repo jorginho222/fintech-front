@@ -5,11 +5,15 @@ import { CompanyRegistrationForm } from '@/company/components/company-registrati
 import { CreditRequestApplicationsView } from '@/credit-request-applications/components/credit-request-applications-view'
 import { CreditRequestApplicationCreateView } from '@/credit-request-applications/components/credit-request-application-create-view'
 import { DashboardView } from '@/dashboard/components/dashboard-view'
+import { CreditRequestConfirmView } from '@/credit-requests/components/credit-request-confirm-view'
+import { CreditRequestShowView } from '@/credit-requests/components/credit-request-show-view'
+import { CreditRequestsView } from '@/credit-requests/components/credit-requests-view'
 import { ProtectedRoute } from '@/protected-route'
 
 const navigationItems = [
   { label: 'Dashboard', to: '/dashboard' },
   { label: 'Solicitud de creditos', to: '/credit_request_applications' },
+  { label: 'Créditos en curso', to: '/credit_requests' },
 ]
 
 function Navigation() {
@@ -82,6 +86,12 @@ function App() {
           path="/credit_request_applications/create"
           element={<CreditRequestApplicationCreateView />}
         />
+        <Route
+          path="/credit_requests/confirm"
+          element={<CreditRequestConfirmView />}
+        />
+        <Route path="/credit_requests" element={<CreditRequestsView />} />
+        <Route path="/credit_requests/show" element={<CreditRequestShowView />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

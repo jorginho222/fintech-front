@@ -79,6 +79,7 @@ export function CreditRequestApplicationsView() {
                 <th scope="col" className="px-6 py-4">Cuotas</th>
                 <th scope="col" className="px-6 py-4">Estado</th>
                 <th scope="col" className="px-6 py-4">Motivo de rechazo</th>
+                <th scope="col" className="px-6 py-4">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
@@ -103,6 +104,18 @@ export function CreditRequestApplicationsView() {
                   </td>
                   <td className="px-6 py-4 text-slate-400">
                     {application.rejectionReason ?? '—'}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4">
+                    {application.creditRequest?.status === 'proposal' ? (
+                      <Link
+                        to={`/credit_requests/confirm?id=${encodeURIComponent(application.creditRequest.id)}`}
+                        className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-emerald-500"
+                      >
+                        Confirmar crédito
+                      </Link>
+                    ) : (
+                      <span className="text-slate-500">—</span>
+                    )}
                   </td>
                 </tr>
               ))}

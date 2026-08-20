@@ -3,6 +3,7 @@ import { ApiError, getApiErrorMessage } from '@/shared/api/api-error'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 const API_VERSION = import.meta.env.VITE_API_VERSION ?? 'v1'
+const pendingGetRequests = new Map<string, Promise<unknown>>()
 
 function getApiUrl(path: string): string {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
@@ -10,7 +11,7 @@ function getApiUrl(path: string): string {
   return `${API_BASE_URL}/${API_VERSION}${normalizedPath}`
 }
 
-export async function apiJsonRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function executeJsonRequest<T>(path: string, init: RequestInit): Promise<T> {
   const token = useAuthStore.getState().token
   const headers = new Headers(init.headers)
 
@@ -33,4 +34,28 @@ export async function apiJsonRequest<T>(path: string, init: RequestInit = {}): P
   }
 
   return body as T
+}
+
+export function apiJsonRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const method = init.method?.toUpperCase() ?? 'GET'
+
+  if (method !== 'GET') {
+    return executeJsonRequest<T>(path, init)
+  }
+
+  const token = useAuthStore.getState().token ?? ''
+  const requestKey = `${token}:${getApiUrl(path)}`
+  const pendingRequest = pendingGetRequests.get(requestKey)
+
+  if (pendingRequest) {
+    return pendingRequest as Promise<T>
+  }
+
+  const request = executeJsonRequest<T>(path, init).finally(() => {
+    pendingGetRequests.delete(requestKey)
+  })
+
+  pendingGetRequests.set(requestKey, request)
+
+  return request
 }

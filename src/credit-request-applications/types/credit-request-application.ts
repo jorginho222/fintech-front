@@ -9,13 +9,18 @@ export interface CreditRequestApplicationCompany extends Company {
   score: number
 }
 
+export interface CreditRequestApplicationCreditRequest {
+  id: string
+  status: string
+}
+
 export interface CreditRequestApplication {
   id: string
   amount: string
   installmentQuantity: number
   status: CreditRequestApplicationStatus
   rejectionReason: string | null
-  creditRequestId: string | null
+  creditRequest: CreditRequestApplicationCreditRequest | null
   company: CreditRequestApplicationCompany
 }
 
