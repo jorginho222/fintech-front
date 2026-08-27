@@ -151,7 +151,7 @@ export function CreditRequestConfirmView() {
         <SummaryCard label="Tasa nominal" value={`${numberFormatter.format(Number(creditRequest.nominalInterestRate))}%`} />
         <SummaryCard label="Cantidad de cuotas" value={String(creditRequest.installmentQuantity)} />
         <SummaryCard label="Válida hasta" value={creditRequest.approvalLimitDate} />
-        <SummaryCard label="Fecha de creación" value={formatDate(creditRequest.createdAt)} />
+        <SummaryCard label="Fecha de creación" value={formatDate(creditRequest.proposalDate)} />
       </div>
 
       <div className="border-t border-slate-800">

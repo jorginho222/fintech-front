@@ -18,3 +18,9 @@ export function confirmCreditRequest(id: string): Promise<CreditRequest> {
     method: 'PUT',
   })
 }
+
+export function payInstallment(id: string): Promise<CreditRequest> {
+  return apiJsonRequest<CreditRequest>(`/installment/${encodeURIComponent(id)}/pay`, {
+    method: 'PUT',
+  })
+}

@@ -6,6 +6,7 @@ import { CreditRequestApplicationsView } from '@/credit-request-applications/com
 import { CreditRequestApplicationCreateView } from '@/credit-request-applications/components/credit-request-application-create-view'
 import { DashboardView } from '@/dashboard/components/dashboard-view'
 import { CreditRequestConfirmView } from '@/credit-requests/components/credit-request-confirm-view'
+import { CreditRequestPayView } from '@/credit-requests/components/credit-request-pay-view'
 import { CreditRequestShowView } from '@/credit-requests/components/credit-request-show-view'
 import { CreditRequestsView } from '@/credit-requests/components/credit-requests-view'
 import { ProtectedRoute } from '@/protected-route'
@@ -92,6 +93,7 @@ function App() {
         />
         <Route path="/credit_requests" element={<CreditRequestsView />} />
         <Route path="/credit_requests/show" element={<CreditRequestShowView />} />
+        <Route path="/credit_requests/pay" element={<CreditRequestPayView />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
