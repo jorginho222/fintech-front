@@ -19,6 +19,7 @@ export interface CreditRequest {
   totalAmount: string | number
   nominalInterestRate: string | number
   installmentQuantity: number
+  paidInstallments: number
   proposalDate: string
   activationDate: string | null
   upcomingInstallment: CreditRequestInstallment | null

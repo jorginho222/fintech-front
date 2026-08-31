@@ -7,17 +7,9 @@ import {
 } from '@/credit-requests/api/credit-request-api'
 import type {
   CreditRequest,
-  CreditRequestStatus,
   InstallmentStatus,
 } from '@/credit-requests/types/credit-request'
 import { ApiError } from '@/shared/api/api-error'
-
-const CREDIT_STATUS_LABELS: Record<CreditRequestStatus, string> = {
-  proposal: 'Propuesta',
-  proposal_expired: 'Propuesta vencida',
-  active: 'Activo',
-  paid: 'Pagado',
-}
 
 const INSTALLMENT_STATUS_LABELS: Record<InstallmentStatus, string> = {
   pending: 'Pendiente',
@@ -137,6 +129,9 @@ export function CreditRequestConfirmView() {
             Confirmar crédito
           </h1>
           <p className="mt-1 text-sm text-slate-400">Revisá la propuesta antes de confirmarla.</p>
+          <p className="mt-1 text-sm text-slate-400">
+            Tenes tiempo hasta el <span className="font-semibold text-slate-100">{creditRequest.approvalLimitDate}</span>
+          </p>
         </div>
         <Link to="/credit_request_applications" className="text-sm font-medium text-slate-300 hover:text-white">
           Volver
@@ -144,12 +139,9 @@ export function CreditRequestConfirmView() {
       </div>
 
       <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
-        <SummaryCard label="Estado" value={CREDIT_STATUS_LABELS[creditRequest.status]} />
         <SummaryCard label="Monto total" value={currencyFormatter.format(Number(creditRequest.totalAmount))} />
         <SummaryCard label="Tasa nominal" value={`${numberFormatter.format(Number(creditRequest.nominalInterestRate))}%`} />
         <SummaryCard label="Cantidad de cuotas" value={String(creditRequest.installmentQuantity)} />
-        <SummaryCard label="Válida hasta" value={creditRequest.approvalLimitDate} />
-        <SummaryCard label="Fecha de creación" value={formatDate(creditRequest.proposalDate)} />
       </div>
 
       <div className="border-t border-slate-800">

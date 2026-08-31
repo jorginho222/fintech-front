@@ -169,8 +169,9 @@ export function CreditRequestShowView() {
         </SummaryCard>
         <SummaryCard label="Monto total" value={currencyFormatter.format(Number(creditRequest.totalAmount))} />
         <SummaryCard label="Tasa nominal" value={`${numberFormatter.format(Number(creditRequest.nominalInterestRate))}%`} />
-        <SummaryCard label="Cantidad de cuotas" value={String(creditRequest.installmentQuantity)} />
         <SummaryCard label="Fecha de confirmación" value={formatDate(creditRequest.activationDate)} />
+        <SummaryCard label="Cantidad de cuotas" value={String(creditRequest.installmentQuantity)} />
+        <SummaryCard label="Cuotas pagas" value={String(creditRequest.paidInstallments)} />
       </div>
 
       {creditRequest.upcomingInstallment && (
