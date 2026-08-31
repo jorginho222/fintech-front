@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import {
   confirmCreditRequest,
@@ -54,13 +54,13 @@ function SummaryCard({ label, value }: SummaryCardProps) {
 }
 
 export function CreditRequestConfirmView() {
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const creditRequestId = searchParams.get('id')
   const [creditRequest, setCreditRequest] = useState<CreditRequest | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isConfirming, setIsConfirming] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!creditRequestId) {
@@ -99,12 +99,10 @@ export function CreditRequestConfirmView() {
 
     setIsConfirming(true)
     setError(null)
-    setSuccessMessage(null)
 
     try {
-      const confirmed = await confirmCreditRequest(creditRequestId)
-      setCreditRequest(confirmed)
-      setSuccessMessage('El crédito fue confirmado correctamente.')
+      await confirmCreditRequest(creditRequestId)
+      navigate('/credit_requests')
     } catch (requestError) {
       setError(
         requestError instanceof ApiError
@@ -188,7 +186,6 @@ export function CreditRequestConfirmView() {
 
       <div className="flex flex-wrap items-center justify-end gap-4 border-t border-slate-800 p-6">
         {error && <p role="alert" className="mr-auto text-sm text-rose-400">{error}</p>}
-        {successMessage && <p role="status" className="mr-auto text-sm text-emerald-400">{successMessage}</p>}
         {creditRequest.status === 'proposal' && (
           <button
             type="button"

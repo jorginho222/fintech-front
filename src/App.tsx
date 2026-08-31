@@ -9,12 +9,14 @@ import { CreditRequestConfirmView } from '@/credit-requests/components/credit-re
 import { CreditRequestPayView } from '@/credit-requests/components/credit-request-pay-view'
 import { CreditRequestShowView } from '@/credit-requests/components/credit-request-show-view'
 import { CreditRequestsView } from '@/credit-requests/components/credit-requests-view'
+import { PaymentsCalendarView } from '@/payments-calendar/components/payments-calendar-view'
 import { ProtectedRoute } from '@/protected-route'
 
 const navigationItems = [
   { label: 'Dashboard', to: '/dashboard' },
   { label: 'Solicitud de creditos', to: '/credit_request_applications' },
   { label: 'Créditos en curso', to: '/credit_requests' },
+  { label: 'Calendario de pagos', to: '/payments_calendar' },
 ]
 
 function Navigation() {
@@ -94,6 +96,7 @@ function App() {
         <Route path="/credit_requests" element={<CreditRequestsView />} />
         <Route path="/credit_requests/show" element={<CreditRequestShowView />} />
         <Route path="/credit_requests/pay" element={<CreditRequestPayView />} />
+        <Route path="/payments_calendar" element={<PaymentsCalendarView />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

@@ -106,16 +106,26 @@ export function CreditRequestApplicationsView() {
                     {application.rejectionReason ?? '—'}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
-                    {application.creditRequest?.status === 'proposal' ? (
+                    {application.creditRequest?.status === 'proposal' && (
                       <Link
                         to={`/credit_requests/confirm?id=${encodeURIComponent(application.creditRequest.id)}`}
                         className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-emerald-500"
                       >
                         Confirmar crédito
                       </Link>
-                    ) : (
-                      <span className="text-slate-500">—</span>
                     )}
+                    {application.creditRequest?.status === 'active' && (
+                      <Link
+                        to={`/credit_requests/show?id=${encodeURIComponent(application.creditRequest.id)}`}
+                        className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-emerald-500"
+                      >
+                        Ir al crédito
+                      </Link>
+                    )}
+                    {application.creditRequest?.status !== 'proposal' &&
+                      application.creditRequest?.status !== 'active' && (
+                        <span className="text-slate-500">—</span>
+                      )}
                   </td>
                 </tr>
               ))}
