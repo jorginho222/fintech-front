@@ -19,3 +19,9 @@ export function registerCompany(registration: CompanyRegistration): Promise<Comp
     body: JSON.stringify(registration),
   })
 }
+
+export function logoutCompany(): Promise<void> {
+  return apiJsonRequest<void>('/logout', {
+    method: 'POST',
+  })
+}
