@@ -48,8 +48,13 @@ export interface CompanyCredentials {
   password: string
 }
 
-export interface CompanyLoginResult {
+export interface AuthToken {
   token: string
   expiresAt: string
+}
+
+export interface CompanyAuthResult {
+  accessToken: AuthToken
+  refreshToken: AuthToken
   company: Company
 }

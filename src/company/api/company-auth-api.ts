@@ -1,13 +1,14 @@
 import type {
   Company,
   CompanyCredentials,
-  CompanyLoginResult,
+  CompanyAuthResult,
   CompanyRegistration,
 } from '@/company/types/company'
 import { apiJsonRequest } from '@/shared/api/api-client'
+import { useAuthStore } from '@/store/auth-store'
 
-export function loginCompany(credentials: CompanyCredentials): Promise<CompanyLoginResult> {
-  return apiJsonRequest<CompanyLoginResult>('/login', {
+export function loginCompany(credentials: CompanyCredentials): Promise<CompanyAuthResult> {
+  return apiJsonRequest<CompanyAuthResult>('/login', {
     method: 'POST',
     body: JSON.stringify(credentials),
   })
@@ -23,5 +24,6 @@ export function registerCompany(registration: CompanyRegistration): Promise<Comp
 export function logoutCompany(): Promise<void> {
   return apiJsonRequest<void>('/logout', {
     method: 'POST',
+    body: JSON.stringify({ refreshToken: useAuthStore.getState().refreshToken }),
   })
 }

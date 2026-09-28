@@ -53,7 +53,7 @@ export function CompanyLoginForm() {
 
     try {
       const result = await loginCompany(credentials)
-      login(result.token, result.company)
+      login(result.accessToken.token, result.refreshToken.token, result.company)
       navigate('/dashboard', { replace: true })
     } catch (error) {
       if (error instanceof ApiError) {
