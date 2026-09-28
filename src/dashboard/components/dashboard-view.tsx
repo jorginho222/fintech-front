@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 
+import { logoutCompany } from '@/company/api/company-auth-api'
 import { useAuthStore } from '@/store/auth-store'
 
 export function DashboardView() {
@@ -7,9 +8,15 @@ export function DashboardView() {
   const company = useAuthStore((state) => state.company)
   const logout = useAuthStore((state) => state.logout)
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login', { replace: true })
+  const handleLogout = async () => {
+    try {
+      await logoutCompany()
+    } catch {
+      // Local session is cleared below regardless of backend failure.
+    } finally {
+      logout()
+      navigate('/login', { replace: true })
+    }
   }
 
   return (
