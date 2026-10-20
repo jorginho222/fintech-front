@@ -8,6 +8,9 @@ const pendingGetRequests = new Map<string, Promise<unknown>>()
 // /login: a 401 means bad credentials. /logout: its body carries the refresh token, which a
 // mid-request refresh would rotate (revoke) before the retry.
 const NO_REFRESH_PATHS = new Set(['/login', '/logout'])
+// Public endpoints never carry the bearer token: a stale one would be rejected by the backend's
+// JWT firewall before reaching the endpoint.
+const PUBLIC_PATHS = new Set(['/login', '/company_registration'])
 let pendingRefresh: Promise<string> | null = null
 
 function normalizePath(path: string): string {
@@ -98,7 +101,7 @@ async function getTokenAfterUnauthorized(rejectedToken: string): Promise<string 
 }
 
 async function executeJsonRequest<T>(path: string, init: RequestInit): Promise<T> {
-  const token = useAuthStore.getState().token
+  const token = PUBLIC_PATHS.has(normalizePath(path)) ? null : useAuthStore.getState().token
 
   try {
     return await sendJsonRequest<T>(path, init, token)
