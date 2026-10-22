@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
 
+import { usePermissionGate } from '@/company/hooks/use-permissions'
+import { ROUTE_ACCESS } from '@/navigation'
+import { GatedLink } from '@/shared/components/gated-link'
 import { useCreditRequestStore } from '@/store/credit-request-store'
 
 const currencyFormatter = new Intl.NumberFormat('es-AR', {
@@ -15,6 +17,7 @@ export function CreditRequestsView() {
   const isLoading = useCreditRequestStore((state) => state.isLoading)
   const error = useCreditRequestStore((state) => state.error)
   const fetchCreditRequests = useCreditRequestStore((state) => state.fetchCreditRequests)
+  const showGate = usePermissionGate(ROUTE_ACCESS.creditRequestShow.permissions)
 
   useEffect(() => {
     void fetchCreditRequests()
@@ -71,12 +74,14 @@ export function CreditRequestsView() {
                     {creditRequest.installmentQuantity}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
-                    <Link
+                    <GatedLink
+                      allowed={showGate.allowed}
+                      reason={showGate.reason}
                       to={`/credit_requests/show?id=${encodeURIComponent(creditRequest.id)}`}
                       className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-emerald-500"
                     >
                       Ver crédito
-                    </Link>
+                    </GatedLink>
                   </td>
                 </tr>
               ))}

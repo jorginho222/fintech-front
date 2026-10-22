@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
 
+import { usePermissionGate } from '@/company/hooks/use-permissions'
 import type { CreditRequestApplicationStatus } from '@/credit-request-applications/types/credit-request-application'
+import { ROUTE_ACCESS } from '@/navigation'
+import { GatedLink } from '@/shared/components/gated-link'
 import { useCreditRequestApplicationStore } from '@/store/credit-request-application-store'
 
 const STATUS_LABELS: Record<CreditRequestApplicationStatus, string> = {
@@ -26,6 +28,9 @@ export function CreditRequestApplicationsView() {
   const isLoading = useCreditRequestApplicationStore((state) => state.isLoading)
   const error = useCreditRequestApplicationStore((state) => state.error)
   const fetchApplications = useCreditRequestApplicationStore((state) => state.fetchApplications)
+  const createGate = usePermissionGate(ROUTE_ACCESS.creditRequestApplicationCreate.permissions)
+  const confirmGate = usePermissionGate(ROUTE_ACCESS.creditRequestConfirm.permissions)
+  const showGate = usePermissionGate(ROUTE_ACCESS.creditRequestShow.permissions)
 
   useEffect(() => {
     void fetchApplications()
@@ -37,12 +42,14 @@ export function CreditRequestApplicationsView() {
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
           Solicitud de creditos
         </h1>
-        <Link
+        <GatedLink
+          allowed={createGate.allowed}
+          reason={createGate.reason}
           to="/credit_request_applications/create"
           className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 active:scale-[0.98]"
         >
           Nueva solicitud
-        </Link>
+        </GatedLink>
       </div>
 
       {isLoading && (
@@ -107,20 +114,24 @@ export function CreditRequestApplicationsView() {
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
                     {application.creditRequest?.status === 'proposal' && (
-                      <Link
+                      <GatedLink
+                        allowed={confirmGate.allowed}
+                        reason={confirmGate.reason}
                         to={`/credit_requests/confirm?id=${encodeURIComponent(application.creditRequest.id)}`}
                         className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-emerald-500"
                       >
                         Confirmar crédito
-                      </Link>
+                      </GatedLink>
                     )}
                     {application.creditRequest?.status === 'active' && (
-                      <Link
+                      <GatedLink
+                        allowed={showGate.allowed}
+                        reason={showGate.reason}
                         to={`/credit_requests/show?id=${encodeURIComponent(application.creditRequest.id)}`}
                         className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-emerald-500"
                       >
                         Ir al crédito
-                      </Link>
+                      </GatedLink>
                     )}
                     {application.creditRequest?.status !== 'proposal' &&
                       application.creditRequest?.status !== 'active' && (

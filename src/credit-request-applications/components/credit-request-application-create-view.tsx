@@ -9,6 +9,8 @@ import {
   type CreditRequestApplicationCreateInput,
   type CreditRequestApplicationCreateOutput,
 } from '@/credit-request-applications/schemas/credit-request-application-create-schema'
+import { useHasPermissions } from '@/company/hooks/use-permissions'
+import { ROUTE_ACCESS } from '@/navigation'
 import { ApiError } from '@/shared/api/api-error'
 
 const inputClassName =
@@ -36,6 +38,7 @@ function Field({ id, label, error, children }: FieldProps) {
 export function CreditRequestApplicationCreateView() {
   const navigate = useNavigate()
   const [formError, setFormError] = useState<string | null>(null)
+  const canListApplications = useHasPermissions(ROUTE_ACCESS.creditRequestApplications.permissions)
   const {
     register,
     handleSubmit,
@@ -54,7 +57,7 @@ export function CreditRequestApplicationCreateView() {
 
     try {
       await createCreditRequestApplication(application)
-      navigate('/credit_request_applications', { replace: true })
+      navigate(canListApplications ? '/credit_request_applications' : '/dashboard', { replace: true })
     } catch (error) {
       setFormError(
         error instanceof ApiError ? error.message : 'No se pudo conectar con el servidor.',

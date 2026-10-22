@@ -24,7 +24,7 @@ TypeScript is strict: use `import type`, narrow indexed values, and do not assig
 
 ## Testing Guidelines
 
-There is no automated test suite or coverage requirement. Run lint and the production build, then manually verify affected routes and API error states. When tests are introduced, colocate them with features using `*.test.ts` or `*.test.tsx` and add the command to `package.json`.
+Unit tests use Vitest (`npm test`) and live in `tests/` as `*.test.ts`; they cover pure logic only (no DOM setup yet). There is no coverage requirement. Run the tests, lint and the production build, then manually verify affected routes and API error states.
 
 ## Commit & Pull Request Guidelines
 

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { strongPasswordSchema } from '@/company/schemas/strong-password-schema'
 import { TAX_STATUSES, type TaxStatus } from '@/company/types/company'
 
 const TAX_STATUS_REQUIRED = 'Seleccioná una condición fiscal'
@@ -16,12 +17,7 @@ export const companyRegistrationSchema = z.object({
     .refine((value) => value !== '', TAX_STATUS_REQUIRED)
     // Safe: the refine above rules out the empty string.
     .transform((value) => value as TaxStatus),
-  password: z
-    .string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .max(4096, 'La contraseña es demasiado larga')
-    .regex(/[A-Z]/, 'La contraseña debe contener al menos una letra mayúscula')
-    .regex(/[^A-Za-z\d]/, 'La contraseña debe contener al menos un carácter especial'),
+  password: strongPasswordSchema,
 })
 
 export type CompanyRegistrationInput = z.input<typeof companyRegistrationSchema>

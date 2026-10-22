@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
+import { usePermissionGate } from '@/company/hooks/use-permissions'
 import { findCreditRequest } from '@/credit-requests/api/credit-request-api'
 import type { CreditRequest, CreditRequestStatus, InstallmentStatus } from '@/credit-requests/types/credit-request'
+import { ROUTE_ACCESS } from '@/navigation'
 import { ApiError } from '@/shared/api/api-error'
+import { GatedLink } from '@/shared/components/gated-link'
 
 const CREDIT_STATUS_LABELS: Record<CreditRequestStatus, string> = {
   proposal: 'Propuesta',
@@ -105,6 +108,7 @@ export function CreditRequestShowView() {
   const [creditRequest, setCreditRequest] = useState<CreditRequest | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const payGate = usePermissionGate(ROUTE_ACCESS.creditRequestPay.permissions)
 
   useEffect(() => {
     if (!creditRequestId) {
@@ -184,12 +188,14 @@ export function CreditRequestShowView() {
                   Cuota N.º {creditRequest.upcomingInstallment.periodNumber}
                 </p>
               </div>
-              <Link
+              <GatedLink
+                allowed={payGate.allowed}
+                reason={payGate.reason}
                 to={`/credit_requests/pay?id=${encodeURIComponent(creditRequest.id)}`}
                 className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 active:scale-[0.98]"
               >
                 Pagar cuota
-              </Link>
+              </GatedLink>
             </div>
             <dl className="mt-5 grid gap-4 sm:grid-cols-3">
               <div>
