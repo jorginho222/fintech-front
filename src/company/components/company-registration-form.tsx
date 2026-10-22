@@ -5,7 +5,9 @@ import { Link } from 'react-router-dom'
 
 import { registerCompany } from '@/company/api/company-auth-api'
 import { companyRegistrationSchema } from '@/company/schemas/company-registration-schema'
+import { PASSWORD_POLICY_HINT } from '@/company/schemas/strong-password-schema'
 import { ApiError } from '@/shared/api/api-error'
+import { applyApiFieldErrors } from '@/shared/forms/apply-api-field-errors'
 import {
   TAX_STATUSES,
   TAX_STATUS_LABELS,
@@ -49,6 +51,7 @@ export function CompanyRegistrationForm() {
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<CompanyRegistrationDraft, unknown, CompanyRegistration>({
     resolver: zodResolver(companyRegistrationSchema),
@@ -66,6 +69,8 @@ export function CompanyRegistrationForm() {
       reset(createDefaultCompanyRegistration())
     } catch (error) {
       if (error instanceof ApiError) {
+        if (applyApiFieldErrors(error, setError, ['socialReason', 'cuit', 'email', 'taxStatus', 'password'])) return
+
         setStatus({ type: 'error', message: error.message })
         return
       }
@@ -146,7 +151,7 @@ export function CompanyRegistrationForm() {
           {...register('password')}
         />
         <p className="text-xs text-slate-500">
-          Mínimo 8 caracteres, con una mayúscula y un carácter especial.
+          {PASSWORD_POLICY_HINT}
         </p>
       </Field>
 

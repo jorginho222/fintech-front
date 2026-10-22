@@ -3,8 +3,12 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, Link } from 'react-router-dom'
 
-import { loginCompany } from '@/company/api/company-auth-api'
-import { companyLoginSchema, type CompanyLoginInput } from '@/company/schemas/company-login-schema'
+import { loginCompanyUser } from '@/company/api/company-auth-api'
+import {
+  companyUserLoginSchema,
+  type CompanyUserLoginInput,
+  type CompanyUserLoginOutput,
+} from '@/company/schemas/company-user-login-schema'
 import { ApiError } from '@/shared/api/api-error'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -34,27 +38,28 @@ function Field({ id, label, error, children }: FieldProps) {
   )
 }
 
-export function CompanyLoginForm() {
+export function CompanyUserLoginForm() {
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
+  const sessionExpired = useAuthStore((state) => state.sessionExpired)
   const [formError, setFormError] = useState<string | null>(null)
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<CompanyLoginInput>({
-    resolver: zodResolver(companyLoginSchema),
-    defaultValues: { cuit: '', password: '' },
+  } = useForm<CompanyUserLoginInput, unknown, CompanyUserLoginOutput>({
+    resolver: zodResolver(companyUserLoginSchema),
+    defaultValues: { taxIdentifier: '', password: '' },
   })
 
-  const onSubmit = async (credentials: CompanyLoginInput) => {
+  const onSubmit = async (credentials: CompanyUserLoginOutput) => {
     setFormError(null)
 
     try {
-      const result = await loginCompany(credentials)
-      login(result.accessToken.token, result.refreshToken.token, result.company)
-      navigate('/dashboard', { replace: true })
+      const result = await loginCompanyUser(credentials)
+      login(result.accessToken.token, result.refreshToken.token, result.company, result.user)
+      navigate(result.user.mustChangePassword ? '/change_password' : '/dashboard', { replace: true })
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(error.message)
@@ -73,18 +78,24 @@ export function CompanyLoginForm() {
     >
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Iniciar sesión</h1>
-        <p className="mt-1 text-sm text-slate-400">Ingresá con el CUIT y la contraseña de tu empresa.</p>
+        <p className="mt-1 text-sm text-slate-400">Ingresá con el CUIT de tu empresa o tu CUIL, y tu contraseña.</p>
       </div>
 
-      <Field id="cuit" label="CUIT" error={errors.cuit?.message}>
+      {sessionExpired && !formError && (
+        <p role="status" className="rounded-lg border border-amber-800/70 bg-amber-950/30 px-3 py-2 text-sm text-amber-300">
+          Tu sesión terminó. Ingresá nuevamente.
+        </p>
+      )}
+
+      <Field id="taxIdentifier" label="CUIT/CUIL" error={errors.taxIdentifier?.message}>
         <input
-          id="cuit"
+          id="taxIdentifier"
           type="text"
           inputMode="numeric"
           maxLength={11}
           placeholder="30712345678"
           className={inputClassName}
-          {...register('cuit')}
+          {...register('taxIdentifier')}
         />
       </Field>
 

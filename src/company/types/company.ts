@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 
+import type { CompanyUser } from '@/company/types/company-user'
+
 export const TAX_STATUSES = [
   'monotributo',
   'responsable_inscripto',
@@ -43,8 +45,8 @@ export function createDefaultCompanyRegistration(): CompanyRegistrationDraft {
   }
 }
 
-export interface CompanyCredentials {
-  cuit: string
+export interface CompanyUserCredentials {
+  taxIdentifier: string
   password: string
 }
 
@@ -53,8 +55,9 @@ export interface AuthToken {
   expiresAt: string
 }
 
-export interface CompanyAuthResult {
+export interface CompanyUserAuthResult {
   accessToken: AuthToken
   refreshToken: AuthToken
   company: Company
+  user: CompanyUser
 }

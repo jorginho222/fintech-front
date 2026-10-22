@@ -57,12 +57,12 @@ Out of scope (deferred by the backend too): member profile data, showing who per
 - Every user-shaped response (login/refresh `user` block, `/me`, `/me/password`, and every `/user…` endpoint except the catalogue) uses the same shape: `id`, `type`, `taxIdentifier`, `displayName`, `active`, `mustChangePassword` and `permissions`. `GET /user/search` returns a list of them; create, update, permissions, deactivate and activate return the updated member.
 - `permissions` is required on create and on permissions update, even when empty (an empty list is valid; a missing key is a 422). Each value must be one of the catalogue values.
 - `GET /user/permission-catalogue` returns a list of groups, each with a `resource` key (`credit_request_application`, `credit_requests`, `payment_calendar`, `total_debt`) and its `permissions` values, in catalogue order. It has no labels: the frontend provides Spanish labels for resources and permissions.
-- Error bodies the frontend relies on:
-  - 401 `Invalid credentials.` on login with a wrong password **or** a deactivated account; 401 `Invalid refresh token.` on a rejected refresh.
-  - 403 `{"error": "Password change required."}` while `mustChangePassword` is set.
-  - 403 `{"error": "Access denied."}` for a missing permission, or a member calling any `/user…` route.
-  - 404 `User not found.` for a member of another company or a non-existent id.
-  - 409 `A user with that tax identifier already exists.` and 409 `The company already has the maximum number of active users.`
+- Error bodies the frontend relies on. The `{"error": ...}` messages added by this feature are user-facing Spanish, so the frontend shows them as they come, without matching their text; only the status code decides the handling:
+  - 401 `Invalid credentials.` on login with a wrong password **or** a deactivated account; 401 `Invalid refresh token.` on a rejected refresh. These pre-existing messages are still in English.
+  - 403 `Debe cambiar su contraseña para continuar.` while `mustChangePassword` is set. This is the one message the frontend still matches exactly, because both 403s share the status and have no error code.
+  - 403 `No tiene permiso para acceder a este recurso.` for a missing permission, or a member calling any `/user…` route.
+  - 404 `Usuario no encontrado.` for a member of another company or a non-existent id.
+  - 409 `Ya existe un usuario con ese CUIT/CUIL.` and 409 `La empresa ya alcanzó el máximo de usuarios activos.`
   - 422 `{"errors": {"field": [...]}}` for validation failures, keyed by the request field (`taxIdentifier`, `displayName`, `password`, `newPassword`, `permissions`…), one message per unmet password rule.
 - There is no delete endpoint, and none must be offered in the UI.
 
@@ -70,7 +70,7 @@ Out of scope (deferred by the backend too): member profile data, showing who per
 - The login form field is labelled "CUIT/CUIL" and sent as `taxIdentifier`, with the same validation as today's CUIT rule (exactly 11 digits, no dashes).
 - After a successful login or refresh, the session stores the `user` block alongside the tokens and the company. It is persisted and kept in sync across tabs the same way the current session is. The refresh flow in the shared API client must update the stored user as well as the tokens.
 - When the app loads with an existing session, it fetches `GET /me` and updates the stored user, so stale type, permissions or password-change flag from storage are corrected. A session persisted before this feature (no `user` stored) is handled the same way, or by forcing a fresh login if `/me` fails.
-- The dashboard greeting keeps showing the company name; for a member it also shows the member's display name.
+- The dashboard title shows the company name ("Dashboard - ACME SA"), and the greeting shows only the user's display name ("Bienvenido, Juan Pérez."). The admin has no display name, so their greeting is "Bienvenido, administrador."
 - A deactivated member gets 401 on their next request and their refresh fails. This goes through the existing 401 → refresh → logout path and must end on the login screen like a session expiry, with no loop. Login with a deactivated account fails with the same invalid-credentials error as a wrong password (the backend doesn't reveal that the account exists).
 - Logout works the same for both user types and remains available while a password change is pending.
 
@@ -88,10 +88,10 @@ Out of scope (deferred by the backend too): member profile data, showing who per
 - The form asks for the current password, the new password and a confirmation of the new password (the confirmation is frontend-only and is not sent).
 - Client-side validation mirrors the backend policy: at least 8 characters, at least one uppercase letter, one number and one symbol, with each unmet rule listed. The new password must differ from the current one and match its confirmation.
 - Backend errors are shown on the matching field or as a form-level error, handling both error shapes:
-  - Wrong current password: 422 `{"error": "The current password is incorrect."}`, shown on the current-password field. It is deliberately not a 401, so it never triggers the refresh/logout path.
-  - New password equal to the current one: 422 `{"error": "The new password must be different from the current one."}`, shown on the new-password field.
-  - Policy violations: 422 `errors.newPassword`, one message per unmet rule.
-  - Change no longer allowed (flag already cleared, e.g. in another tab): 409 `Password change is not allowed for this user.` Re-fetch `/me` and continue to the dashboard.
+  - Wrong current password: 422 `{"error": "La contraseña actual es incorrecta."}`, shown as is as a form-level error. It is deliberately not a 401, so it never triggers the refresh/logout path.
+  - New password equal to the current one: 422 `{"error": "La nueva contraseña debe ser distinta de la actual."}`, shown as is as a form-level error.
+  - Policy violations: 422 `errors.newPassword`, one message per unmet rule, mapped to the new-password field.
+  - Change no longer allowed (flag already cleared, e.g. in another tab): 409 `Este usuario no tiene permitido cambiar la contraseña.` Re-fetch `/me` and continue to the dashboard.
 - A successful `PUT /me/password` returns the updated user (with `mustChangePassword: false`), which replaces the stored user.
 - On success the stored `mustChangePassword` flag is cleared and the user goes to the dashboard without logging in again.
 - The admin never sees this screen (`mustChangePassword` is always false for admins), and there's no "change my password" entry for anyone in this feature.
@@ -120,7 +120,7 @@ Out of scope (deferred by the backend too): member profile data, showing who per
 - **Create member** form: CUIL (11 digits), display name (required), initial password (same policy as above) and a permission picker. The id is a client-generated UUID v4, regenerated when the form is reset after a successful create. The picker is built from `GET /user/permission-catalogue`, grouped by resource, with each group titled by its Spanish label and one checkbox per permission showing its Spanish label (see the table above); an empty selection is allowed. After creating a member, the admin is told the member will have to change the password on first login.
 - **Member detail** (`GET /user/{id}`): shows the member's data and lets the admin edit the display name (`PUT /user/{id}`) and replace the permission set with the same grouped picker (`PUT /user/{id}/permissions`). The CUIL and the password cannot be edited.
 - **Deactivate / activate**: available from the list and the detail view. Deactivating asks for confirmation, explaining the member loses access immediately.
-- Backend errors are shown clearly: CUIL already in use by any company or user (409, on the CUIL field), active member limit reached (409), validation errors (422, mapped to fields, including an unknown permission), and member not found (404, shown as a "member not found" state).
+- Backend errors are shown clearly: CUIL already in use by any company or user (409) and active member limit reached (409) as a form-level error with the backend message, validation errors (422, mapped to fields, including an unknown permission), and member not found (404, shown as a "member not found" state with the backend message).
 - The zod schemas mirror the backend DTO constraints exactly:
   - `CompanyUserLoginDto`: `taxIdentifier` matches 11 digits; `password` not blank.
   - `MemberUserCreateDto`: `id` UUID v4; `taxIdentifier` matches 11 digits; `displayName` not blank after trimming, at most 255 characters; `password` follows `StrongPassword`; `permissions` a list (possibly empty) of catalogue values.
@@ -143,7 +143,7 @@ Out of scope (deferred by the backend too): member profile data, showing who per
 - An existing company logs in with its CUIT: it is an admin and sees everything exactly as before, plus "Gestion de Usuarios".
 - First load after the release: the stored refresh token predates the `userId` claim and is rejected, so the user is sent to login once instead of being stuck in a refresh loop.
 - A session persisted before this feature has no `user`: the app doesn't crash or show an empty navigation; it fetches `/me` or forces a new login.
-- The admin creates a member whose CUIL equals an existing CUIT or CUIL, including their own company's CUIT: the 409 is shown on the CUIL field.
+- The admin creates a member whose CUIL equals an existing CUIT or CUIL, including their own company's CUIT: the 409 message is shown on the form.
 - The admin creates an 11th active member, or activates one while 10 are active (e.g. the count changed in another tab): the 409 is shown and the list is refreshed.
 - Deactivating an already inactive member or activating an already active one (stale list): the backend treats it as success; the list refreshes.
 - The admin opens the detail URL of a member that doesn't exist or belongs to another company: 404 → "member not found" state.
@@ -158,7 +158,7 @@ Out of scope (deferred by the backend too): member profile data, showing who per
 - The pay and confirm screens load the credit request through `GET /credit-request/{id}`, which needs `credit_request.view`. So in the UI, paying needs `installment.pay` **and** `credit_request.view`, and confirming needs `credit_request.confirm` **and** `credit_request.view`. A member with only one of them sees the action disabled, with a note naming the missing permission, even though the backend would accept the bare pay/confirm call.
 - A member has `credit_request.list` but not `credit_request.view`: list rows don't link into the detail view.
 - The permission catalogue fails to load while creating or editing a member: the form shows an error with a retry instead of an empty picker.
-- The catalogue returns a group or permission value the frontend has no Spanish label for (e.g. the backend added one before the frontend caught up): it's still shown, using the raw value as a fallback, so the admin can still grant it. This is only a safety net; every known value has a Spanish label.
+- The catalogue returns a group or permission value the frontend has no Spanish label for (e.g. the backend added one before the frontend caught up): it's still shown, using the raw value as a fallback, but its checkbox is disabled: the form schemas mirror the backend enum, so it can't be granted until the frontend learns the value. This is only a safety net; every known value has a Spanish label.
 - Two tabs are open and the member changes the password in one: the other tab picks up the cleared flag through the existing cross-tab session sync.
 
 ## Acceptance Criteria
@@ -179,7 +179,7 @@ Out of scope (deferred by the backend too): member profile data, showing who per
 ## Open questions
 - Pay and confirm without `credit_request.view`: the backend accepts them, but the current screens need the credit request's details first. For now the UI requires both permissions. Alternatively, the backend could return the needed details under the pay/confirm permission. Revisit if admins hit this.
 - Resolved by the backend implementation:
-  - The password-change 403 is detected by its message, `Password change required.`; a permission 403 says `Access denied.`
+  - The password-change 403 is detected by its exact message, `Debe cambiar su contraseña para continuar.`; any other 403 is treated as a missing permission. The other messages of this feature are Spanish and shown as is.
   - The catalogue is a list of `{resource, permissions}` groups with no labels; Spanish labels live in the frontend.
   - `GET /user/search` takes no filters and isn't paginated (at most a handful of rows per company).
 

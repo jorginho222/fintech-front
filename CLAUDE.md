@@ -30,7 +30,12 @@ docker compose up -d --build app   # http://localhost:4173
 docker compose up -d --build --renew-anon-volumes dev
 ```
 
-There is no test suite yet.
+Unit tests use **Vitest** and live in `tests/` (pure logic only: schemas, permission helpers, API error parsing; no DOM setup yet):
+
+```bash
+docker run --rm -v "$PWD":/app -w /app --user "$(id -u):$(id -g)" \
+  -e npm_config_cache=/tmp/.npm node:22-alpine npm test
+```
 
 - `npm run lint` runs **oxlint** (not ESLint) — config in `.oxlintrc.json`.
 - `npm run build` runs `tsc -b && vite build`; type errors fail the build.
@@ -42,6 +47,7 @@ This is the frontend for a separate Symfony backend repo (sibling directory `fin
 - Read the corresponding `*Dto.php` and its `Assert\*` constraints — the zod schema should mirror them exactly (same regex, same enum values, same required/optional fields).
 - Routes are mounted under `%app.api_prefix%`, currently `/api/v1` (not the bare path shown in a controller's `#[Route]` attribute) — confirm with `docker exec fintech-php-1 php bin/console debug:router` in the backend repo if unsure.
 - The backend's global exception subscriber (`ApiExceptionSubscriber`) returns two error shapes: `{"errors": {"field": ["message", ...]}}` with HTTP 422 for validation failures, and `{"error": "message"}` for domain/JSON errors. API clients should handle both.
+- `{"error": ...}` messages are user-facing Spanish (being migrated: the user-permissions exceptions and the 403 are translated, older ones like `Invalid credentials.` are still English). Show translated messages as they come and branch on the status code, not on the message text; don't add Spanish rewrites of them. The one exception is the password-change 403 (`Debe cambiar su contraseña para continuar.`), matched exactly in `src/shared/api/api-client.ts` because it shares the status with the permission 403.
 - In dev, `vite.config.ts` proxies `/api` to the backend (`VITE_API_PROXY_TARGET`, defaulting to `http://host.docker.internal:8080` when run via `docker compose`, matching the backend's nginx port in its own `docker-compose.yml`).
 
 ## Architecture

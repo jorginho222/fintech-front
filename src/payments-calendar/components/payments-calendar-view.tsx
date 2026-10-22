@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 
+import { usePermissionGate } from '@/company/hooks/use-permissions'
 import { searchPendingInstallmentsToPay } from '@/payments-calendar/api/payments-calendar-api'
 import type { PendingInstallment, PendingInstallmentsToPay } from '@/payments-calendar/types/payments-calendar'
 import type { InstallmentStatus } from '@/credit-requests/types/credit-request'
+import { ROUTE_ACCESS } from '@/navigation'
 import { ApiError } from '@/shared/api/api-error'
+import { GatedLink } from '@/shared/components/gated-link'
 
 const MONTH_LABELS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -31,6 +33,7 @@ export function PaymentsCalendarView() {
   const today = useMemo(() => new Date(), [])
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth() + 1)
+  const payGate = usePermissionGate(ROUTE_ACCESS.creditRequestPay.permissions)
   const [data, setData] = useState<PendingInstallmentsToPay | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -175,8 +178,10 @@ export function PaymentsCalendarView() {
                     {day}
                   </span>
                   {dayInstallments.map((installment) => (
-                    <Link
+                    <GatedLink
                       key={installment.id}
+                      allowed={payGate.allowed}
+                      reason={payGate.reason}
                       to={`/credit_requests/pay?id=${encodeURIComponent(installment.creditRequestId)}`}
                       title={`Cuota N.º ${installment.periodNumber} — ${currencyFormatter.format(Number(installment.totalAmount))}`}
                       className="flex items-center gap-1 truncate rounded px-1 py-0.5 text-[11px] font-medium text-slate-100 transition hover:bg-slate-700"
@@ -188,7 +193,7 @@ export function PaymentsCalendarView() {
                       <span className="truncate">
                         {currencyFormatter.format(Number(installment.totalAmount))}
                       </span>
-                    </Link>
+                    </GatedLink>
                   ))}
                 </div>
               )
