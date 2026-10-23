@@ -34,7 +34,7 @@ export function getMissingPermissions(user: CompanyUser | null, required: readon
 export function describeMissingPermissions(missing: readonly Permission[]): string {
   const labels = missing.map((permission) => `«${PERMISSION_LABELS[permission]}»`)
 
-  if (labels.length <= 1) return `Necesitás el permiso ${labels.join('')}`
+  if (labels.length <= 1) return `Necesita el permiso ${labels.join('')}`
 
-  return `Necesitás los permisos ${labels.slice(0, -1).join(', ')} y ${labels.at(-1) ?? ''}`
+  return `Necesita los permisos ${labels.slice(0, -1).join(', ')} y ${labels.at(-1) ?? ''}`
 }

@@ -78,12 +78,12 @@ export function CompanyUserLoginForm() {
     >
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Iniciar sesión</h1>
-        <p className="mt-1 text-sm text-slate-400">Ingresá con el CUIT de tu empresa o tu CUIL, y tu contraseña.</p>
+        <p className="mt-1 text-sm text-slate-400">Ingrese con el CUIT de su empresa o su CUIL, y su contraseña.</p>
       </div>
 
       {sessionExpired && !formError && (
         <p role="status" className="rounded-lg border border-amber-800/70 bg-amber-950/30 px-3 py-2 text-sm text-amber-300">
-          Tu sesión terminó. Ingresá nuevamente.
+          Su sesión terminó. Ingrese nuevamente.
         </p>
       )}
 
@@ -125,9 +125,9 @@ export function CompanyUserLoginForm() {
       )}
 
       <p className="text-center text-sm text-slate-400">
-        ¿No tenés cuenta?{' '}
+        ¿No tiene cuenta?{' '}
         <Link to="/register" className="font-medium text-emerald-400 hover:text-emerald-300">
-          Registrá tu empresa
+          Registre su empresa
         </Link>
       </p>
     </form>

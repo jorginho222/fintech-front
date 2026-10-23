@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { strongPasswordSchema } from '@/company/schemas/strong-password-schema'
 import { TAX_STATUSES, type TaxStatus } from '@/company/types/company'
 
-const TAX_STATUS_REQUIRED = 'Seleccioná una condición fiscal'
+const TAX_STATUS_REQUIRED = 'Seleccione una condición fiscal'
 
 export const companyRegistrationSchema = z.object({
   id: z.uuidv4('El id debe ser un UUID v4'),
@@ -11,7 +11,7 @@ export const companyRegistrationSchema = z.object({
     .string()
     .trim()
     .regex(/^\d{11}$/, 'El CUIT debe tener exactamente 11 dígitos, sin guiones'),
-  email: z.email('Ingresá un email válido'),
+  email: z.email('Ingrese un email válido'),
   taxStatus: z
     .union([z.enum(TAX_STATUSES), z.literal('')], TAX_STATUS_REQUIRED)
     .refine((value) => value !== '', TAX_STATUS_REQUIRED)

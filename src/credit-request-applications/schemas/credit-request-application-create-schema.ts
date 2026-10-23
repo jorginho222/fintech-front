@@ -5,7 +5,7 @@ const positiveInteger = (requiredMessage: string) =>
     .string()
     .trim()
     .min(1, requiredMessage)
-    .regex(/^\d+$/, 'Ingresá un número entero positivo')
+    .regex(/^\d+$/, 'Ingrese un número entero positivo')
     .transform(Number)
     .refine((value) => value > 0, 'El valor debe ser mayor que cero')
 

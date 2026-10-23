@@ -128,7 +128,7 @@ export function CreditRequestConfirmView() {
           <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
             Confirmar crédito
           </h1>
-          <p className="mt-1 text-sm text-slate-400">Revisá la propuesta antes de confirmarla.</p>
+          <p className="mt-1 text-sm text-slate-400">Revise la propuesta antes de confirmarla.</p>
           <p className="mt-1 text-sm text-slate-400">
             Tenes tiempo hasta el <span className="font-semibold text-slate-100">{creditRequest.approvalLimitDate}</span>
           </p>

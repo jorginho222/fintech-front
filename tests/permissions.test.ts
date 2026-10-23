@@ -51,12 +51,12 @@ describe('missing permissions', () => {
     const missing = getMissingPermissions(member(['installment.pay']), ['installment.pay', 'credit_request.view'])
 
     expect(missing).toEqual(['credit_request.view'])
-    expect(describeMissingPermissions(missing)).toBe('Necesitás el permiso «Ver detalle de un crédito»')
+    expect(describeMissingPermissions(missing)).toBe('Necesita el permiso «Ver detalle de un crédito»')
   })
 
   it('joins several missing permissions', () => {
     expect(describeMissingPermissions(['installment.pay', 'credit_request.view'])).toBe(
-      'Necesitás los permisos «Pagar cuotas» y «Ver detalle de un crédito»',
+      'Necesita los permisos «Pagar cuotas» y «Ver detalle de un crédito»',
     )
   })
 })

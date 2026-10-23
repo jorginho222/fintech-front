@@ -90,7 +90,7 @@ export function CompanyRegistrationForm() {
           Registrar empresa
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Completá los datos para crear tu cuenta de empresa.
+          Complete los datos para crear la cuenta de su empresa.
         </p>
       </div>
 
@@ -181,9 +181,9 @@ export function CompanyRegistrationForm() {
       )}
 
       <p className="text-center text-sm text-slate-400">
-        ¿Ya tenés cuenta?{' '}
+        ¿Ya tiene cuenta?{' '}
         <Link to="/login" className="font-medium text-emerald-400 hover:text-emerald-300">
-          Iniciá sesión
+          Inicie sesión
         </Link>
       </p>
     </form>

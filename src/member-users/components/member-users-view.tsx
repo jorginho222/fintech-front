@@ -71,7 +71,7 @@ export function MemberUsersView() {
         </div>
         <GatedLink
           allowed={!limitReached}
-          reason={`Ya hay ${MAX_ACTIVE_MEMBER_USERS} usuarios activos. Desactivá uno para crear otro.`}
+          reason={`Ya hay ${MAX_ACTIVE_MEMBER_USERS} usuarios activos. Desactive uno para crear otro.`}
           to="/users/create"
           className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 active:scale-[0.98]"
         >

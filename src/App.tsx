@@ -4,6 +4,7 @@ import { Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom'
 import { fetchCurrentUser } from '@/company/api/company-auth-api'
 import { CompanyUserLoginForm } from '@/company/components/company-user-login-form'
 import { PasswordChangeView } from '@/company/components/password-change-view'
+import { useLogout } from '@/company/hooks/use-logout'
 import { CompanyRegistrationForm } from '@/company/components/company-registration-form'
 import { CreditRequestApplicationsView } from '@/credit-request-applications/components/credit-request-applications-view'
 import { CreditRequestApplicationCreateView } from '@/credit-request-applications/components/credit-request-application-create-view'
@@ -25,11 +26,12 @@ import { useAuthStore } from '@/store/auth-store'
 function Navigation() {
   const user = useAuthStore((state) => state.user)
   const navigationItems = getVisibleNavigationItems(user)
+  const handleLogout = useLogout()
 
   return (
     <aside className="w-full border-b border-slate-800 bg-slate-900 p-6 md:min-h-screen md:w-64 md:border-r md:border-b-0">
       <nav aria-label="Navegación principal">
-        <ul className="flex gap-2 md:flex-col">
+        <ul className="flex flex-wrap gap-2 md:flex-col">
           {navigationItems.map((item) => (
             <li key={item.to}>
               <NavLink
@@ -46,6 +48,15 @@ function Navigation() {
               </NavLink>
             </li>
           ))}
+          <li className="md:mt-2 md:border-t md:border-slate-800 md:pt-2">
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+            >
+              Cerrar sesión
+            </button>
+          </li>
         </ul>
       </nav>
     </aside>

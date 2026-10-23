@@ -87,7 +87,7 @@ export function CreditRequestPayView() {
       <div className="border-b border-slate-800 p-6">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Pagar cuota</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Confirmá el pago de la cuota N.º {creditRequest.upcomingInstallment.periodNumber}.
+          Confirme el pago de la cuota N.º {creditRequest.upcomingInstallment.periodNumber}.
         </p>
       </div>
 

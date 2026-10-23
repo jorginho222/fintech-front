@@ -76,7 +76,7 @@ export function CreditRequestApplicationCreateView() {
           Nueva solicitud de crédito
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Indicá el monto solicitado y la cantidad de cuotas.
+          Indique el monto solicitado y la cantidad de cuotas.
         </p>
       </div>
 
