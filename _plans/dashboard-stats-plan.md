@@ -1,6 +1,6 @@
 # Plan: Dashboard Stats — Credit Request Applications Section (frontend)
 
-Spec: `_specs/dashboard-stats.md` | Branch: `claude/feature/dashboard-stats`
+Spec: `_specs/dashboard-stats-spec.md` | Branch: `claude/feature/dashboard-stats`
 
 ## Context
 
