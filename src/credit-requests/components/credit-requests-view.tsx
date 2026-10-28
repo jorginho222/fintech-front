@@ -55,6 +55,7 @@ export function CreditRequestsView() {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-950/60 text-xs uppercase tracking-wide text-slate-400">
               <tr>
+                <th scope="col" className="px-6 py-4">Referencia</th>
                 <th scope="col" className="px-6 py-4">Total</th>
                 <th scope="col" className="px-6 py-4">Tasa de interés nominal</th>
                 <th scope="col" className="px-6 py-4">Cantidad de cuotas</th>
@@ -64,7 +65,10 @@ export function CreditRequestsView() {
             <tbody className="divide-y divide-slate-800">
               {creditRequests.map((creditRequest) => (
                 <tr key={creditRequest.id} className="transition hover:bg-slate-800/40">
-                  <td className="whitespace-nowrap px-6 py-4 font-medium text-slate-100">
+                  <td className="px-6 py-4 font-medium text-slate-100">
+                    {creditRequest.reference}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-slate-300">
                     {currencyFormatter.format(Number(creditRequest.totalAmount))}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-slate-300">

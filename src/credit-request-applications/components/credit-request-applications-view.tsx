@@ -14,6 +14,13 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
   currency: 'ARS',
 })
 
+const dateTimeFormatter = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short' })
+
+function formatDateTime(value: string): string {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : dateTimeFormatter.format(date)
+}
+
 export function CreditRequestApplicationsView() {
   const applications = useCreditRequestApplicationStore((state) => state.applications)
   const isLoading = useCreditRequestApplicationStore((state) => state.isLoading)
@@ -71,8 +78,8 @@ export function CreditRequestApplicationsView() {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-950/60 text-xs uppercase tracking-wide text-slate-400">
               <tr>
-                <th scope="col" className="px-6 py-4">Empresa</th>
-                <th scope="col" className="px-6 py-4">CUIT</th>
+                <th scope="col" className="px-6 py-4">Referencia</th>
+                <th scope="col" className="px-6 py-4">Fecha de solicitud</th>
                 <th scope="col" className="px-6 py-4">Monto</th>
                 <th scope="col" className="px-6 py-4">Cuotas</th>
                 <th scope="col" className="px-6 py-4">Estado</th>
@@ -83,11 +90,11 @@ export function CreditRequestApplicationsView() {
             <tbody className="divide-y divide-slate-800">
               {applications.map((application) => (
                 <tr key={application.id} className="transition hover:bg-slate-800/40">
-                  <td className="whitespace-nowrap px-6 py-4 font-medium text-slate-100">
-                    {application.company.socialReason}
+                  <td className="px-6 py-4 font-medium text-slate-100">
+                    {application.reference}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-slate-300">
-                    {application.company.cuit}
+                    {formatDateTime(application.createdAt)}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-slate-300">
                     {currencyFormatter.format(Number(application.amount))}

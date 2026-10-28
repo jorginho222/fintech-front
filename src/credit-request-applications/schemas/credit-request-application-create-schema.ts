@@ -10,6 +10,11 @@ const positiveInteger = (requiredMessage: string) =>
     .refine((value) => value > 0, 'El valor debe ser mayor que cero')
 
 export const creditRequestApplicationCreateSchema = z.object({
+  reference: z
+    .string()
+    .trim()
+    .min(1, 'La referencia es obligatoria')
+    .max(60, 'La referencia no puede superar los 60 caracteres'),
   amount: positiveInteger('El monto es obligatorio'),
   installmentQuantity: positiveInteger('La cantidad de cuotas es obligatoria'),
 })

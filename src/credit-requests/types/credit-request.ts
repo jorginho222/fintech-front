@@ -14,6 +14,7 @@ export interface CreditRequestInstallment {
 
 export interface CreditRequest {
   id: string
+  reference: string
   status: CreditRequestStatus
   approvalLimitDate: string
   totalAmount: string | number
