@@ -1,22 +1,13 @@
 import { useEffect } from 'react'
 
 import { usePermissionGate } from '@/company/hooks/use-permissions'
-import type { CreditRequestApplicationStatus } from '@/credit-request-applications/types/credit-request-application'
+import {
+  CREDIT_REQUEST_APPLICATION_STATUS_CLASS_NAMES,
+  CREDIT_REQUEST_APPLICATION_STATUS_LABELS,
+} from '@/credit-request-applications/types/credit-request-application-status'
 import { ROUTE_ACCESS } from '@/navigation'
 import { GatedLink } from '@/shared/components/gated-link'
 import { useCreditRequestApplicationStore } from '@/store/credit-request-application-store'
-
-const STATUS_LABELS: Record<CreditRequestApplicationStatus, string> = {
-  evaluation_pending: 'Pendiente de evaluación',
-  approved: 'Aprobada',
-  rejected: 'Rechazada',
-}
-
-const STATUS_CLASS_NAMES: Record<CreditRequestApplicationStatus, string> = {
-  evaluation_pending: 'bg-amber-500/15 text-amber-300',
-  approved: 'bg-emerald-500/15 text-emerald-300',
-  rejected: 'bg-rose-500/15 text-rose-300',
-}
 
 const currencyFormatter = new Intl.NumberFormat('es-AR', {
   style: 'currency',
@@ -105,8 +96,8 @@ export function CreditRequestApplicationsView() {
                     {application.installmentQuantity}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASS_NAMES[application.status]}`}>
-                      {STATUS_LABELS[application.status]}
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${CREDIT_REQUEST_APPLICATION_STATUS_CLASS_NAMES[application.status]}`}>
+                      {CREDIT_REQUEST_APPLICATION_STATUS_LABELS[application.status]}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-slate-400">

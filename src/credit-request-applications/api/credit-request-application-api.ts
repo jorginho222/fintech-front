@@ -1,3 +1,7 @@
+import {
+  creditRequestApplicationStatsSchema,
+  type CreditRequestApplicationStats,
+} from '@/credit-request-applications/schemas/credit-request-application-stats-schema'
 import type {
   CreditRequestApplication,
   CreditRequestApplicationCreate,
@@ -8,6 +12,20 @@ export function searchCreditRequestApplications(): Promise<CreditRequestApplicat
   return apiJsonRequest<CreditRequestApplication[]>('/credit-request-application/search', {
     method: 'GET',
   })
+}
+
+export async function fetchCreditRequestApplicationStats(): Promise<CreditRequestApplicationStats> {
+  const body = await apiJsonRequest<unknown>('/credit-request-application/stats', {
+    method: 'GET',
+  })
+  const result = creditRequestApplicationStatsSchema.safeParse(body)
+
+  // Not an ApiError: the request itself succeeded, only its body is unusable.
+  if (!result.success) {
+    throw new Error('La respuesta del servidor no es válida.')
+  }
+
+  return result.data
 }
 
 export function createCreditRequestApplication(
