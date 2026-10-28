@@ -156,8 +156,9 @@ export function CreditRequestShowView() {
       <div className="flex items-start justify-between gap-4 border-b border-slate-800 p-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-100">Detalle del crédito</h1>
-          <p className="mt-1 text-sm text-slate-400">Información y cronograma de cuotas.</p>
-        </div>
+          <p className="mt-1 text-sm text-slate-400">
+            Referencia: <span className="font-semibold text-slate-100">{creditRequest.reference}</span>
+          </p>        </div>
         <Link to="/credit_requests" className="text-sm font-medium text-slate-300 hover:text-white">Volver</Link>
       </div>
 
@@ -185,7 +186,7 @@ export function CreditRequestShowView() {
               <div>
                 <h2 className="text-lg font-semibold text-slate-100">Próxima cuota</h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  Cuota N.º {creditRequest.upcomingInstallment.periodNumber}
+                  Cuota {creditRequest.upcomingInstallment.periodNumber}/{creditRequest.installmentQuantity}
                 </p>
               </div>
               <GatedLink

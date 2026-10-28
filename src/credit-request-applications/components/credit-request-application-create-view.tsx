@@ -12,6 +12,7 @@ import {
 import { useHasPermissions } from '@/company/hooks/use-permissions'
 import { ROUTE_ACCESS } from '@/navigation'
 import { ApiError } from '@/shared/api/api-error'
+import { applyApiFieldErrors } from '@/shared/forms/apply-api-field-errors'
 
 const inputClassName =
   'w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-60'
@@ -42,6 +43,7 @@ export function CreditRequestApplicationCreateView() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<
     CreditRequestApplicationCreateInput,
@@ -49,7 +51,7 @@ export function CreditRequestApplicationCreateView() {
     CreditRequestApplicationCreateOutput
   >({
     resolver: zodResolver(creditRequestApplicationCreateSchema),
-    defaultValues: { amount: '', installmentQuantity: '' },
+    defaultValues: { reference: '', amount: '', installmentQuantity: '' },
   })
 
   const onSubmit = async (application: CreditRequestApplicationCreateOutput) => {
@@ -59,9 +61,20 @@ export function CreditRequestApplicationCreateView() {
       await createCreditRequestApplication(application)
       navigate(canListApplications ? '/credit_request_applications' : '/dashboard', { replace: true })
     } catch (error) {
-      setFormError(
-        error instanceof ApiError ? error.message : 'No se pudo conectar con el servidor.',
-      )
+      if (!(error instanceof ApiError)) {
+        setFormError('No se pudo conectar con el servidor.')
+        return
+      }
+
+      // The reference is unique per company.
+      if (error.status === 409) {
+        setError('reference', { type: 'server', message: error.message })
+        return
+      }
+
+      if (applyApiFieldErrors(error, setError, ['reference', 'amount', 'installmentQuantity'])) return
+
+      setFormError(error.message)
     }
   }
 
@@ -76,9 +89,20 @@ export function CreditRequestApplicationCreateView() {
           Nueva solicitud de crédito
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Indique el monto solicitado y la cantidad de cuotas.
+          Indique una referencia, el monto solicitado y la cantidad de cuotas.
         </p>
       </div>
+
+      <Field id="reference" label="Referencia" error={errors.reference?.message}>
+        <input
+          id="reference"
+          type="text"
+          maxLength={60}
+          placeholder="Capital de trabajo 2026"
+          className={inputClassName}
+          {...register('reference')}
+        />
+      </Field>
 
       <Field id="amount" label="Monto" error={errors.amount?.message}>
         <input
