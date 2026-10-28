@@ -1,5 +1,6 @@
 import { isAdmin } from '@/company/types/company-user'
 import { CreditRequestApplicationStatsSection } from '@/dashboard/components/credit-request-application-stats-section'
+import { CreditRequestStatsSection } from '@/dashboard/components/credit-request-stats-section'
 import { canAccess, ROUTE_ACCESS } from '@/navigation'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -10,6 +11,7 @@ export function DashboardView() {
   const greetingName = isAdmin(user) ? 'administrador' : user?.displayName
   // Each section is mounted only when allowed, so its endpoint is never called otherwise.
   const showCreditRequestApplicationStats = canAccess(user, ROUTE_ACCESS.creditRequestApplications)
+  const showCreditRequestStats = canAccess(user, ROUTE_ACCESS.creditRequests)
 
   return (
     <div className="flex w-full max-w-3xl flex-col items-center gap-5 self-start text-center">
@@ -29,6 +31,7 @@ export function DashboardView() {
       )}
 
       {showCreditRequestApplicationStats && <CreditRequestApplicationStatsSection />}
+      {showCreditRequestStats && <CreditRequestStatsSection />}
     </div>
   )
 }

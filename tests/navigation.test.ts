@@ -74,3 +74,17 @@ describe('credit request application stats visibility', () => {
     expect(canAccess(null, access)).toBe(false)
   })
 })
+
+describe('credit request stats visibility', () => {
+  const access = ROUTE_ACCESS.creditRequests
+
+  it('is allowed for the admin and for members with the list permission', () => {
+    expect(canAccess(user('admin', []), access)).toBe(true)
+    expect(canAccess(user('member', ['credit_request.list']), access)).toBe(true)
+  })
+
+  it('is denied to members without the list permission and without a user', () => {
+    expect(canAccess(user('member', ['credit_request_application.list']), access)).toBe(false)
+    expect(canAccess(null, access)).toBe(false)
+  })
+})
