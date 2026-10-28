@@ -12,6 +12,7 @@ export interface PendingInstallment {
   dueDate: string | null
   status: InstallmentStatus
   creditRequestId: string
+  creditRequestReference: string
 }
 
 export interface PendingInstallmentsToPay {
