@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { CompanyUser } from '@/company/types/company-user'
-import { getVisibleNavigationItems } from '@/navigation'
+import { canAccess, getVisibleNavigationItems, ROUTE_ACCESS } from '@/navigation'
 
 function user(type: CompanyUser['type'], permissions: CompanyUser['permissions']): CompanyUser {
   return {
@@ -58,5 +58,47 @@ describe('getVisibleNavigationItems', () => {
 
   it('shows nothing without a user', () => {
     expect(visibleLabels(null)).toEqual([])
+  })
+})
+
+describe('credit request application stats visibility', () => {
+  const access = ROUTE_ACCESS.creditRequestApplications
+
+  it('is allowed for the admin and for members with the list permission', () => {
+    expect(canAccess(user('admin', []), access)).toBe(true)
+    expect(canAccess(user('member', ['credit_request_application.list']), access)).toBe(true)
+  })
+
+  it('is denied to members without the list permission and without a user', () => {
+    expect(canAccess(user('member', ['credit_request_application.create']), access)).toBe(false)
+    expect(canAccess(null, access)).toBe(false)
+  })
+})
+
+describe('credit request stats visibility', () => {
+  const access = ROUTE_ACCESS.creditRequests
+
+  it('is allowed for the admin and for members with the list permission', () => {
+    expect(canAccess(user('admin', []), access)).toBe(true)
+    expect(canAccess(user('member', ['credit_request.list']), access)).toBe(true)
+  })
+
+  it('is denied to members without the list permission and without a user', () => {
+    expect(canAccess(user('member', ['credit_request_application.list']), access)).toBe(false)
+    expect(canAccess(null, access)).toBe(false)
+  })
+})
+
+describe('payments visibility', () => {
+  const access = ROUTE_ACCESS.paymentsCalendar
+
+  it('is allowed for the admin and for members with the payment calendar permission', () => {
+    expect(canAccess(user('admin', []), access)).toBe(true)
+    expect(canAccess(user('member', ['payment_calendar.view']), access)).toBe(true)
+  })
+
+  it('is denied to members without the payment calendar permission and without a user', () => {
+    expect(canAccess(user('member', ['installment.pay']), access)).toBe(false)
+    expect(canAccess(null, access)).toBe(false)
   })
 })

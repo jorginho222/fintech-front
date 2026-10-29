@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { findCreditRequest, payInstallment } from '@/credit-requests/api/credit-request-api'
 import type { CreditRequest } from '@/credit-requests/types/credit-request'
@@ -12,6 +12,7 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
 
 export function CreditRequestPayView() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const creditRequestId = searchParams.get('id')
   const [creditRequest, setCreditRequest] = useState<CreditRequest | null>(null)
@@ -56,7 +57,7 @@ export function CreditRequestPayView() {
 
     try {
       await payInstallment(installment.id)
-      navigate(-1)
+      goBack()
     } catch (requestError) {
       setError(requestError instanceof ApiError ? requestError.message : 'No se pudo conectar con el servidor.')
       setIsPaying(false)
@@ -66,6 +67,16 @@ export function CreditRequestPayView() {
   const backUrl = creditRequestId
     ? `/credit_requests/show?id=${encodeURIComponent(creditRequestId)}`
     : '/credit_requests'
+
+  // Back to whichever view opened this one (calendar, credit detail, dashboard). The "default" key
+  // means it's the first page of the session (e.g. opened from a bookmark): go to the credit instead.
+  function goBack() {
+    if (location.key === 'default') {
+      navigate(backUrl)
+    } else {
+      navigate(-1)
+    }
+  }
 
   if (isLoading) return <p className="text-sm text-slate-400">Cargando cuota…</p>
 
@@ -102,9 +113,13 @@ export function CreditRequestPayView() {
       </div>
 
       <div className="flex items-center justify-end gap-3 border-t border-slate-800 p-6">
-        <Link to={backUrl} className="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white">
+        <button
+          type="button"
+          onClick={goBack}
+          className="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white"
+        >
           Cancelar
-        </Link>
+        </button>
         <button
           type="button"
           disabled={isPaying}
