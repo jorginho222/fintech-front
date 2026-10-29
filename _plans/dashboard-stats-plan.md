@@ -208,7 +208,7 @@ In `tests/dashboard-stats.test.ts` (it already has the `window`/`localStorage` s
 
 1. **Schema** — `dashboardPaymentsSchema` accepts a valid response with payments in both lists, and two empty lists with `"0.00"` totals; strips unknown payment fields (e.g. `status`); rejects a missing list, a missing total, a payment without `creditRequestInstallmentQuantity`, and a non-numeric amount (`"abc"`).
 2. **API wrapper** — `fetchDashboardPayments` with `fetch` stubbed: a valid body resolves to the parsed lists and calls `/api/v1/installment/dashboard-payments` with `GET`; a malformed body rejects with a non-`ApiError`; a `403 {"error": ...}` rejects with an `ApiError` carrying the status and message.
-3. **Formatting** — `formatDueDate`: `2026-10-15T00:00:00-03:00` → `15/10/26`; `2026-10-01T00:00:00-03:00` → `01/10/26` and `2026-10-31T00:00:00-03:00` → `31/10/26` (the day doesn't move whatever the test machine's time zone); `null` → `-`.
+3. **Formatting** — `formatDueDate`: `2026-10-15T00:00:00-03:00` → `15/10/26`; `2026-10-01T00:00:00-03:00` → `1/10/26` and `2026-10-31T00:00:00-03:00` → `31/10/26` (the day doesn't move whatever the test machine's time zone); `null` → `-`.
 4. **Visibility rule** — in `tests/navigation.test.ts`, `canAccess(..., ROUTE_ACCESS.paymentsCalendar)` is true for an admin (even with an empty permission list) and for a member with `payment_calendar.view`, and false for a member without it and for `null`.
 
 ## Verification

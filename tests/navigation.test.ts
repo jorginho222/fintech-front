@@ -88,3 +88,17 @@ describe('credit request stats visibility', () => {
     expect(canAccess(null, access)).toBe(false)
   })
 })
+
+describe('payments visibility', () => {
+  const access = ROUTE_ACCESS.paymentsCalendar
+
+  it('is allowed for the admin and for members with the payment calendar permission', () => {
+    expect(canAccess(user('admin', []), access)).toBe(true)
+    expect(canAccess(user('member', ['payment_calendar.view']), access)).toBe(true)
+  })
+
+  it('is denied to members without the payment calendar permission and without a user', () => {
+    expect(canAccess(user('member', ['installment.pay']), access)).toBe(false)
+    expect(canAccess(null, access)).toBe(false)
+  })
+})
