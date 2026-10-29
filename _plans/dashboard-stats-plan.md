@@ -1,6 +1,6 @@
 # Plan: Dashboard Stats (frontend)
 
-Part 1 covers the "Solicitudes de crédito" section (implemented); Part 2 adds the "Créditos en curso" section.
+Part 1 covers the "Solicitudes de crédito" section and Part 2 the "Créditos en curso" section (both implemented); Part 3 adds the "Pagos" section.
 
 Spec: `_specs/dashboard-stats-spec.md` | Branch: `claude/feature/dashboard-stats`
 
@@ -77,7 +77,7 @@ No changes to `src/App.tsx`, `src/navigation.ts`, permissions or routes.
    - Revoke the permission from a logged-in member and, without reloading, retry the section → `403` error appears, then the section disappears after the `/me` re-sync.
    - Stop the backend → error with a working "Reintentar".
 
-# Part 2 — Créditos en curso
+# Part 2 — Créditos en curso (implemented)
 
 ## Context
 
@@ -145,3 +145,78 @@ Rename `tests/credit-request-application-stats.test.ts` to `tests/dashboard-stat
    - Company with no active credits → "Total créditos" `0`, "Porcentaje pagado" `-`.
    - Member with only `credit_request.list` → only "Créditos en curso", and only the `/credit-request/stats` request in the network tab; member with only `credit_request_application.list` → only "Solicitudes de crédito".
    - Stop the backend → both sections show their own error with a working "Reintentar".
+
+# Part 3 — Pagos
+
+## Context
+
+A third section, "Pagos", shows two lists of installments to pay for the authenticated company, in the payments calendar's format: "Pagos del mes" (pending installments due this month) and "Pagos vencidos" (overdue installments, any month), each with its total. Each payment shows the credit reference, "Cuota N/total", the due date and the amount, with a "Pagar" link. It's shown after "Créditos en curso", only to users with `payment_calendar.view`.
+
+**Backend contract** (backend spec `fintech/_specs/dashboard-stats-spec.md`, Part 3 of `fintech/_plans/dashboard-stats-plan.md`; controller `InstallmentPaymentsDashboardGetController`):
+`GET /api/v1/installment/dashboard-payments`, guarded by `payment_calendar.view` → `200 {"monthPayments": {"totalAmount": "…", "installments": [...]}, "overduePayments": {"totalAmount": "…", "installments": [...]}}`. Each list is the payments calendar's response shape; totals are decimal strings with two decimals (`"0.00"` when empty). Items come from `InstallmentSerializer` (`id`, `periodNumber`, `totalAmount`, `dueDate` as ATOM, e.g. `2026-10-15T00:00:00-03:00`, `status`, `creditRequestId`, `creditRequestReference`, …) plus the new `creditRequestInstallmentQuantity`. Lists are already ordered by due date and grouped by status; the frontend shows them as they come.
+
+Existing pieces this builds on:
+- `useDashboardStats` and `DashboardStatsCard` (Part 2) — fetch/loading/error/retry and card chrome; reused as they are.
+- `src/payments-calendar/` — `PendingInstallmentsToPay` / `PendingInstallment` types, `payments-calendar-api.ts`, and in `payments-calendar-view.tsx` the `payGate = usePermissionGate(ROUTE_ACCESS.creditRequestPay.permissions)` + `GatedLink` to `/credit_requests/pay?id=<creditRequestId>`, the `es-AR` ARS currency formatter, and the overdue color (`rose`).
+- `ROUTE_ACCESS.paymentsCalendar` (`payment_calendar.view`) for visibility.
+
+## Approach
+
+### 1. Response schema and type — `src/payments-calendar/schemas/dashboard-payments-schema.ts`
+
+A new `schemas/` folder in the `payments-calendar` module (the frontend's installments-to-pay module, whose types the response mirrors). Zod schemas:
+- `amount`: a decimal string (`/^\d+(\.\d+)?$/`) or a non-negative number, as the existing types allow `string | number`.
+- `dashboardPaymentSchema`: `id`, `creditRequestId`, `creditRequestReference` (strings); `periodNumber`, `creditRequestInstallmentQuantity` (positive integers); `totalAmount` (`amount`); `dueDate` (`string | null`, as in `PendingInstallment`). Other serializer fields are stripped; only what the section shows is validated.
+- `dashboardPaymentListSchema`: `{ totalAmount: amount, installments: z.array(dashboardPaymentSchema) }`.
+- `dashboardPaymentsSchema`: `{ monthPayments: dashboardPaymentListSchema, overduePayments: dashboardPaymentListSchema }`.
+
+Export the inferred types `DashboardPayment`, `DashboardPaymentList` and `DashboardPayments`. `PendingInstallment` (payments calendar) is left unchanged: it doesn't use the new field.
+
+### 2. API wrapper — `src/payments-calendar/api/payments-calendar-api.ts`
+
+Add `fetchDashboardPayments(): Promise<DashboardPayments>` next to `searchPendingInstallmentsToPay`, the same way as the other stats fetchers: `apiJsonRequest<unknown>('/installment/dashboard-payments', { method: 'GET' })`, `safeParse`, and a plain `Error` on an invalid body.
+
+### 3. Due date formatting — `src/dashboard/format-due-date.ts`
+
+`formatDueDate(value: string | null): string`:
+- `null` → `-`.
+- Reads year, month and day from the leading `YYYY-MM-DD` of the ATOM string (same regex approach as `getDueDay` in the payments calendar), builds a local `new Date(year, month - 1, day)` and formats it with `Intl.DateTimeFormat('es-AR', { dateStyle: 'short' })`, matching the applications list (e.g. `15/10/26`). Parsing the whole ATOM string with `new Date()` is avoided: it converts to the browser's time zone and can move the day.
+- A value without a leading date → returned as-is (like `formatDate` in the applications list).
+
+A separate pure function so it can be unit tested without a DOM.
+
+### 4. Section component — `src/dashboard/components/payments-section.tsx`
+
+`export function PaymentsSection()`:
+- `useDashboardStats(fetchDashboardPayments)` and `DashboardStatsCard` with title "Pagos" and a "Ver calendario" link to `/payments_calendar`.
+- `payGate = usePermissionGate(ROUTE_ACCESS.creditRequestPay.permissions)`, computed once in the section and passed down.
+- Local `currencyFormatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })`, duplicated per the existing per-file convention.
+- Two `PaymentList` blocks (a local component in the same file) in a grid, one column on phones and two from `sm` up: "Pagos del mes" and "Pagos vencidos". Props: `title`, `list`, `emptyMessage`, `overdue` (boolean, for the rose accent) and `payGate`.
+  - Header: title + `currencyFormatter.format(Number(list.totalAmount))`.
+  - Empty → the empty message ("No hay pagos del mes." / "No hay pagos vencidos.").
+  - Otherwise a `ul` with a max height and `overflow-y-auto`, one `li` per payment (key `id`): reference, `Cuota {periodNumber}/{creditRequestInstallmentQuantity}`, `Vence {formatDueDate(dueDate)}`, the amount, and a "Pagar" `GatedLink` (`allowed`/`reason` from `payGate`) to `/credit_requests/pay?id=${encodeURIComponent(creditRequestId)}`, like the payments calendar.
+
+### 5. Dashboard — `src/dashboard/components/dashboard-view.tsx`
+
+Add `showPayments = canAccess(user, ROUTE_ACCESS.paymentsCalendar)` and render `<PaymentsSection />` after `<CreditRequestStatsSection />` when true. The revoked-permission flow works as in Part 1.
+
+No changes to `src/App.tsx`, `src/navigation.ts`, permissions or routes.
+
+## Testing
+
+In `tests/dashboard-stats.test.ts` (it already has the `window`/`localStorage` stub the auth store needs):
+
+1. **Schema** — `dashboardPaymentsSchema` accepts a valid response with payments in both lists, and two empty lists with `"0.00"` totals; strips unknown payment fields (e.g. `status`); rejects a missing list, a missing total, a payment without `creditRequestInstallmentQuantity`, and a non-numeric amount (`"abc"`).
+2. **API wrapper** — `fetchDashboardPayments` with `fetch` stubbed: a valid body resolves to the parsed lists and calls `/api/v1/installment/dashboard-payments` with `GET`; a malformed body rejects with a non-`ApiError`; a `403 {"error": ...}` rejects with an `ApiError` carrying the status and message.
+3. **Formatting** — `formatDueDate`: `2026-10-15T00:00:00-03:00` → `15/10/26`; `2026-10-01T00:00:00-03:00` → `01/10/26` and `2026-10-31T00:00:00-03:00` → `31/10/26` (the day doesn't move whatever the test machine's time zone); `null` → `-`.
+4. **Visibility rule** — in `tests/navigation.test.ts`, `canAccess(..., ROUTE_ACCESS.paymentsCalendar)` is true for an admin (even with an empty permission list) and for a member with `payment_calendar.view`, and false for a member without it and for `null`.
+
+## Verification
+
+1. Type-check, build, lint and tests via Docker (see `CLAUDE.md`).
+2. With the backend's Part 3 endpoint in place and the dev server up:
+   - Admin → three sections in order; "Pagos" lists and totals match `GET /api/v1/installment/dashboard-payments`; "Ver calendario" opens the payments calendar; "Pagar" opens the pay screen of that credit.
+   - Company with nothing to pay → both empty messages with `$ 0,00` totals.
+   - Member with `payment_calendar.view` only → only "Pagos", with "Pagar" disabled and the missing permissions as the reason; member without it → no "Pagos" section and no `/dashboard-payments` request.
+   - Pay an installment, return to the Dashboard → the lists reflect the payment.
+   - Stop the backend → each section shows its own error with a working "Reintentar".
