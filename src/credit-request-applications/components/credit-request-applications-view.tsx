@@ -14,11 +14,11 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
   currency: 'ARS',
 })
 
-const dateTimeFormatter = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short' })
+const dateFormatter = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short' })
 
-function formatDateTime(value: string): string {
+function formatDate(value: string): string {
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? value : dateTimeFormatter.format(date)
+  return Number.isNaN(date.getTime()) ? value : dateFormatter.format(date)
 }
 
 export function CreditRequestApplicationsView() {
@@ -94,7 +94,7 @@ export function CreditRequestApplicationsView() {
                     {application.reference}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-slate-300">
-                    {formatDateTime(application.createdAt)}
+                    {formatDate(application.createdAt)}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-slate-300">
                     {currencyFormatter.format(Number(application.amount))}
