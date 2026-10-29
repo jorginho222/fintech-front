@@ -12,6 +12,14 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
 
 const numberFormatter = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 })
 
+const dateFormatter = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short' })
+
+function formatDate(value: string | null): string {
+  if (!value) return '—'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : dateFormatter.format(date)
+}
+
 export function CreditRequestsView() {
   const creditRequests = useCreditRequestStore((state) => state.creditRequests)
   const isLoading = useCreditRequestStore((state) => state.isLoading)
@@ -56,6 +64,7 @@ export function CreditRequestsView() {
             <thead className="bg-slate-950/60 text-xs uppercase tracking-wide text-slate-400">
               <tr>
                 <th scope="col" className="px-6 py-4">Referencia</th>
+                <th scope="col" className="px-6 py-4">Fecha confirmado</th>
                 <th scope="col" className="px-6 py-4">Total</th>
                 <th scope="col" className="px-6 py-4">Tasa de interés nominal</th>
                 <th scope="col" className="px-6 py-4">Cantidad de cuotas</th>
@@ -67,6 +76,9 @@ export function CreditRequestsView() {
                 <tr key={creditRequest.id} className="transition hover:bg-slate-800/40">
                   <td className="px-6 py-4 font-medium text-slate-100">
                     {creditRequest.reference}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-slate-300">
+                    {formatDate(creditRequest.activationDate)}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-slate-300">
                     {currencyFormatter.format(Number(creditRequest.totalAmount))}
