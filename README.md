@@ -8,8 +8,10 @@ Built with **React 19**, **TypeScript** and **Vite**. The whole development envi
 
 - **Company accounts:** registration, login by CUIT/CUIL, JWT sessions with automatic token refresh, and logout. The session is kept in sync across browser tabs.
 - **Credit applications:** list a company's applications and apply for credit.
-- **Credit requests:** confirm a loan proposal, list credit requests, see a credit request's installments, and pay them.
-- **Payments calendar and total debt:** pending installments by due date, and the company's total debt.
+- **Credit requests:** confirm a loan proposal, list credit requests, and see a credit request's installments.
+- **Installment payments:** pay a pending or overdue installment after confirming in a dialog. The backend confirms payments asynchronously, so the installment shows as in process until the result arrives. Rejected, failed or timed-out attempts are flagged with their date and can be paid again.
+- **Dashboard payments:** the month's payments, payments in process (only when there are any) and overdue payments.
+- **Payments calendar and total debt:** pending installments by due date, colored green (on track), orange (failed attempt) or red (overdue), and the company's total debt. Payments in process stay out of the calendar but still count toward the debt.
 - **User management (Gestion de Usuarios):** the company admin creates up to 10 active member users, edits their names and permissions, and activates or deactivates them. Members must change the admin-set password on their first login.
 - **Permission-aware UI:** members only see the sections they have permissions for. Actions they can't perform are disabled with the missing permission named. The backend remains the source of truth.
 
@@ -115,7 +117,7 @@ docker run --rm -v "$PWD":/app -w /app --user "$(id -u):$(id -g)" \
   -e npm_config_cache=/tmp/.npm node:22-alpine npm install <pkg>
 ```
 
-Unit tests cover pure logic: schemas, permission helpers, navigation filtering and API error parsing.
+Unit tests cover pure logic: schemas, permission helpers, navigation filtering, payment status rules and API error parsing.
 
 ## Specs and plans
 

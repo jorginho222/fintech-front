@@ -1,3 +1,5 @@
+import type { InstallmentPaymentAttemptStatus } from '@/credit-requests/types/installment-payment-attempt'
+
 export type CreditRequestStatus = 'proposal' | 'proposal_expired' | 'active' | 'paid'
 export type InstallmentStatus = 'pending' | 'paid' | 'overdue'
 
@@ -10,6 +12,8 @@ export interface CreditRequestInstallment {
   totalAmount: string | number
   dueDate: string | null
   status: InstallmentStatus
+  lastPaymentAttemptStatus: InstallmentPaymentAttemptStatus | null
+  lastPaymentAttemptAt: string | null
 }
 
 export interface CreditRequest {

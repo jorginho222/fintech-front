@@ -16,7 +16,7 @@ export function DashboardView() {
   const showPayments = canAccess(user, ROUTE_ACCESS.paymentsCalendar)
 
   return (
-    <div className="flex w-full max-w-3xl flex-col items-center gap-5 self-start text-center">
+    <div className="flex w-full max-w-3xl flex-col lg:max-w-5xl items-center gap-5 self-start text-center">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
           Dashboard{company?.socialReason ? ` - ${company.socialReason}` : ''}

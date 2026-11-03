@@ -187,6 +187,9 @@ const payment = {
   periodNumber: 1,
   totalAmount: '1500.50',
   dueDate: '2026-10-15T00:00:00-03:00',
+  status: 'pending',
+  lastPaymentAttemptStatus: null,
+  lastPaymentAttemptAt: null,
   creditRequestId: 'credit-1',
   creditRequestReference: 'Capital de trabajo',
   creditRequestInstallmentQuantity: 12,
@@ -194,16 +197,29 @@ const payment = {
 
 const payments = {
   monthPayments: { totalAmount: '1500.50', installments: [payment] },
-  overduePayments: { totalAmount: '2000.00', installments: [{ ...payment, id: 'installment-2', totalAmount: '2000.00' }] },
+  overduePayments: { totalAmount: '2000.00', installments: [{ ...payment, id: 'installment-2', totalAmount: '2000.00', status: 'overdue' }] },
+  processingPayments: {
+    totalAmount: '500.00',
+    installments: [
+      {
+        ...payment,
+        id: 'installment-3',
+        totalAmount: '500.00',
+        lastPaymentAttemptStatus: 'processing',
+        lastPaymentAttemptAt: '2026-10-20T10:00:00-03:00',
+      },
+    ],
+  },
 }
 
 const noPayments = {
   monthPayments: { totalAmount: '0.00', installments: [] },
   overduePayments: { totalAmount: '0.00', installments: [] },
+  processingPayments: { totalAmount: '0.00', installments: [] },
 }
 
 describe('dashboardPaymentsSchema', () => {
-  it('accepts payments in both lists and two empty lists', () => {
+  it('accepts payments in every list and three empty lists', () => {
     expect(dashboardPaymentsSchema.safeParse(payments).success).toBe(true)
     expect(dashboardPaymentsSchema.safeParse(noPayments).success).toBe(true)
   })
@@ -211,14 +227,42 @@ describe('dashboardPaymentsSchema', () => {
   it('strips payment fields the dashboard does not use', () => {
     const parsed = dashboardPaymentsSchema.parse({
       ...noPayments,
-      monthPayments: { totalAmount: '1500.50', installments: [{ ...payment, status: 'pending' }] },
+      monthPayments: { totalAmount: '1500.50', installments: [{ ...payment, capitalAmount: '1000.00' }] },
     })
 
     expect(parsed.monthPayments.installments[0]).toEqual(payment)
   })
 
+  it.each(['processing', 'approved', 'rejected', 'processing_failed', 'processing_timeout'])(
+    'accepts the %s attempt status with its date',
+    (lastPaymentAttemptStatus) => {
+      const body = {
+        ...noPayments,
+        monthPayments: {
+          totalAmount: '1500.50',
+          installments: [{ ...payment, lastPaymentAttemptStatus, lastPaymentAttemptAt: '2026-10-20T10:00:00-03:00' }],
+        },
+      }
+
+      expect(dashboardPaymentsSchema.safeParse(body).success).toBe(true)
+    },
+  )
+
   it.each([
     ['a missing list', { monthPayments: noPayments.monthPayments }],
+    ['a missing processing list', { monthPayments: noPayments.monthPayments, overduePayments: noPayments.overduePayments }],
+    [
+      'an unknown attempt status',
+      { ...noPayments, monthPayments: { totalAmount: '1500.50', installments: [{ ...payment, lastPaymentAttemptStatus: 'cancelled' }] } },
+    ],
+    [
+      'a payment without the attempt status',
+      { ...noPayments, monthPayments: { totalAmount: '1500.50', installments: [{ ...payment, lastPaymentAttemptStatus: undefined }] } },
+    ],
+    [
+      'a payment without the attempt date',
+      { ...noPayments, monthPayments: { totalAmount: '1500.50', installments: [{ ...payment, lastPaymentAttemptAt: undefined }] } },
+    ],
     ['a missing total', { ...noPayments, overduePayments: { installments: [] } }],
     [
       'a payment without the installment count',
