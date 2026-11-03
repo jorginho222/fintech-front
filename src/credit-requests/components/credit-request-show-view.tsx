@@ -3,7 +3,10 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { usePermissionGate } from '@/company/hooks/use-permissions'
 import { findCreditRequest } from '@/credit-requests/api/credit-request-api'
+import { PaymentAttemptBadge } from '@/credit-requests/components/payment-attempt-badge'
+import { buildInstallmentPayUrl } from '@/credit-requests/installment-to-pay'
 import type { CreditRequest, CreditRequestStatus, InstallmentStatus } from '@/credit-requests/types/credit-request'
+import { canPayFromInstallmentList, isPaymentProcessing } from '@/credit-requests/types/installment-payment-attempt'
 import { ROUTE_ACCESS } from '@/navigation'
 import { ApiError } from '@/shared/api/api-error'
 import { GatedLink } from '@/shared/components/gated-link'
@@ -189,14 +192,16 @@ export function CreditRequestShowView() {
                   Cuota {creditRequest.upcomingInstallment.periodNumber}/{creditRequest.installmentQuantity}
                 </p>
               </div>
-              <GatedLink
-                allowed={payGate.allowed}
-                reason={payGate.reason}
-                to={`/credit_requests/pay?id=${encodeURIComponent(creditRequest.id)}`}
-                className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 active:scale-[0.98]"
-              >
-                Pagar cuota
-              </GatedLink>
+              {!isPaymentProcessing(creditRequest.upcomingInstallment.lastPaymentAttemptStatus) && (
+                <GatedLink
+                  allowed={payGate.allowed}
+                  reason={payGate.reason}
+                  to={buildInstallmentPayUrl(creditRequest.id, creditRequest.upcomingInstallment.id)}
+                  className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 active:scale-[0.98]"
+                >
+                  Pagar cuota
+                </GatedLink>
+              )}
             </div>
             <dl className="mt-5 grid gap-4 sm:grid-cols-3">
               <div>
@@ -211,11 +216,15 @@ export function CreditRequestShowView() {
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide text-slate-500">Estado</dt>
-                <dd className="mt-1">
+                <dd className="mt-1 flex flex-wrap gap-1.5">
                   <StatusBadge
                     label={INSTALLMENT_STATUS_LABELS[creditRequest.upcomingInstallment.status]}
                     status={creditRequest.upcomingInstallment.status}
                     className={INSTALLMENT_STATUS_STYLES[creditRequest.upcomingInstallment.status]}
+                  />
+                  <PaymentAttemptBadge
+                    status={creditRequest.upcomingInstallment.lastPaymentAttemptStatus}
+                    at={creditRequest.upcomingInstallment.lastPaymentAttemptAt}
                   />
                 </dd>
               </div>
@@ -237,6 +246,7 @@ export function CreditRequestShowView() {
                 <th scope="col" className="px-4 py-3">Total</th>
                 <th scope="col" className="px-4 py-3">Vencimiento</th>
                 <th scope="col" className="px-4 py-3">Estado</th>
+                <th scope="col" className="px-4 py-3"><span className="sr-only">Acciones</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
@@ -249,11 +259,26 @@ export function CreditRequestShowView() {
                   <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-100">{currencyFormatter.format(Number(installment.totalAmount))}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-slate-300">{formatDate(installment.dueDate)}</td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    <StatusBadge
-                      label={INSTALLMENT_STATUS_LABELS[installment.status]}
-                      status={installment.status}
-                      className={INSTALLMENT_STATUS_STYLES[installment.status]}
-                    />
+                    <div className="flex flex-wrap gap-1.5">
+                      <StatusBadge
+                        label={INSTALLMENT_STATUS_LABELS[installment.status]}
+                        status={installment.status}
+                        className={INSTALLMENT_STATUS_STYLES[installment.status]}
+                      />
+                      <PaymentAttemptBadge status={installment.lastPaymentAttemptStatus} at={installment.lastPaymentAttemptAt} />
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right">
+                    {canPayFromInstallmentList(installment.status, installment.lastPaymentAttemptStatus) && (
+                      <GatedLink
+                        allowed={payGate.allowed}
+                        reason={payGate.reason}
+                        to={buildInstallmentPayUrl(creditRequest.id, installment.id)}
+                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500"
+                      >
+                        Pagar
+                      </GatedLink>
+                    )}
                   </td>
                 </tr>
               ))}

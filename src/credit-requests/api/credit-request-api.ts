@@ -37,8 +37,10 @@ export function confirmCreditRequest(id: string): Promise<CreditRequest> {
   })
 }
 
-export function payInstallment(id: string): Promise<CreditRequest> {
-  return apiJsonRequest<CreditRequest>(`/installment/${encodeURIComponent(id)}/pay`, {
+// Answers 202: the payment was submitted, its result arrives later. `null` means the body was
+// unusable, but the payment was still submitted.
+export function requestInstallmentPayment(id: string): Promise<CreditRequest | null> {
+  return apiJsonRequest<CreditRequest | null>(`/installment/${encodeURIComponent(id)}/pay-request`, {
     method: 'PUT',
   })
 }

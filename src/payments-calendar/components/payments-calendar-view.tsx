@@ -3,7 +3,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { usePermissionGate } from '@/company/hooks/use-permissions'
 import { searchPendingInstallmentsToPay } from '@/payments-calendar/api/payments-calendar-api'
 import type { PendingInstallment, PendingInstallmentsToPay } from '@/payments-calendar/types/payments-calendar'
-import type { InstallmentStatus } from '@/credit-requests/types/credit-request'
+import { buildInstallmentPayUrl } from '@/credit-requests/installment-to-pay'
+import {
+  getCalendarPaymentTone,
+  getPaymentAttemptLabel,
+  type CalendarPaymentTone,
+} from '@/credit-requests/types/installment-payment-attempt'
 import { ROUTE_ACCESS } from '@/navigation'
 import { ApiError } from '@/shared/api/api-error'
 import { GatedLink } from '@/shared/components/gated-link'
@@ -15,11 +20,17 @@ const MONTH_LABELS = [
 
 const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
-const INSTALLMENT_STATUS_DOT_STYLES: Record<InstallmentStatus, string> = {
-  pending: 'bg-amber-400',
-  paid: 'bg-emerald-400',
+const CALENDAR_TONE_STYLES: Record<CalendarPaymentTone, string> = {
+  ok: 'bg-emerald-400',
+  attention: 'bg-orange-400',
   overdue: 'bg-rose-400',
 }
+
+const CALENDAR_LEGEND: { tone: CalendarPaymentTone; label: string }[] = [
+  { tone: 'ok', label: 'Pendiente' },
+  { tone: 'attention', label: 'Pago rechazado, no procesado o sin confirmar' },
+  { tone: 'overdue', label: 'Vencida' },
+]
 
 const currencyFormatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
 
@@ -177,28 +188,43 @@ export function PaymentsCalendarView() {
                   <span className={`text-xs font-medium ${isToday ? 'text-emerald-400' : 'text-slate-400'}`}>
                     {day}
                   </span>
-                  {dayInstallments.map((installment) => (
-                    <GatedLink
-                      key={installment.id}
-                      allowed={payGate.allowed}
-                      reason={payGate.reason}
-                      to={`/credit_requests/pay?id=${encodeURIComponent(installment.creditRequestId)}`}
-                      title={`Cuota N.º ${installment.periodNumber} — ${currencyFormatter.format(Number(installment.totalAmount))}`}
-                      className="flex items-center gap-1 truncate rounded px-1 py-0.5 text-[11px] font-medium text-slate-100 transition hover:bg-slate-700"
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 shrink-0 rounded-full ${INSTALLMENT_STATUS_DOT_STYLES[installment.status]}`}
-                        aria-hidden="true"
-                      />
-                      <span className="truncate">
-                        {currencyFormatter.format(Number(installment.totalAmount))}
-                      </span>
-                    </GatedLink>
-                  ))}
+                  {dayInstallments.map((installment) => {
+                    const attemptLabel = getPaymentAttemptLabel(installment.lastPaymentAttemptStatus)
+                    const tone = getCalendarPaymentTone(installment.status, installment.lastPaymentAttemptStatus)
+
+                    return (
+                      <GatedLink
+                        key={installment.id}
+                        allowed={payGate.allowed}
+                        reason={payGate.reason}
+                        to={buildInstallmentPayUrl(installment.creditRequestId, installment.id)}
+                        title={`Cuota N.º ${installment.periodNumber} — ${currencyFormatter.format(Number(installment.totalAmount))}${attemptLabel ? ` — ${attemptLabel}` : ''}`}
+                        className="flex items-center gap-1 truncate rounded px-1 py-0.5 text-[11px] font-medium text-slate-100 transition hover:bg-slate-700"
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 shrink-0 rounded-full ${CALENDAR_TONE_STYLES[tone]}`}
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">
+                          {currencyFormatter.format(Number(installment.totalAmount))}
+                        </span>
+                        {attemptLabel && <span className="sr-only"> — {attemptLabel}</span>}
+                      </GatedLink>
+                    )
+                  })}
                 </div>
               )
             })}
           </div>
+
+          <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-400">
+            {CALENDAR_LEGEND.map(({ tone, label }) => (
+              <li key={tone} className="flex items-center gap-1.5">
+                <span className={`h-2 w-2 shrink-0 rounded-full ${CALENDAR_TONE_STYLES[tone]}`} aria-hidden="true" />
+                {label}
+              </li>
+            ))}
+          </ul>
 
           <div className="mt-6 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-4">
             <p className="text-sm font-medium text-slate-300">Total del mes</p>

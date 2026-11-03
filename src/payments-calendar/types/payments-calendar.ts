@@ -1,4 +1,5 @@
 import type { InstallmentStatus } from '@/credit-requests/types/credit-request'
+import type { InstallmentPaymentAttemptStatus } from '@/credit-requests/types/installment-payment-attempt'
 
 export interface PendingInstallment {
   id: string
@@ -11,6 +12,8 @@ export interface PendingInstallment {
   penaltyIva21Tax: string | number
   dueDate: string | null
   status: InstallmentStatus
+  lastPaymentAttemptStatus: InstallmentPaymentAttemptStatus | null
+  lastPaymentAttemptAt: string | null
   creditRequestId: string
   creditRequestReference: string
 }
